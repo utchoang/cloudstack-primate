@@ -17,7 +17,7 @@
 
 export default {
   name: 'ilbvm',
-  title: 'Internal LB VMs',
+  title: 'label.internal.lb',
   icon: 'share-alt',
   permission: ['listInternalLoadBalancerVMs'],
   params: { projectid: '-1' },
@@ -28,12 +28,13 @@ export default {
       api: 'startInternalLoadBalancerVM',
       icon: 'caret-right',
       label: 'label.action.start.router',
+      message: 'message.confirm.start.lb.vm',
       dataView: true,
       show: (record) => { return record.state === 'Stopped' }
     },
     {
       api: 'stopInternalLoadBalancerVM',
-      icon: 'stop',
+      icon: 'poweroff',
       label: 'label.action.stop.router',
       dataView: true,
       args: ['forced'],

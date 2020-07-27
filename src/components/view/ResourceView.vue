@@ -41,9 +41,9 @@
           @change="onTabChange" >
           <a-tab-pane
             v-for="tab in tabs"
-            :tab="$t(tab.name)"
+            :tab="$t('label.' + tab.name)"
             :key="tab.name"
-            v-if="showHideTab(tab)">
+            v-if="showTab(tab)">
             <component :is="tab.component" :resource="resource" :loading="loading" :tab="activeTab" />
           </a-tab-pane>
         </a-tabs>
@@ -57,6 +57,7 @@ import DetailsTab from '@/components/view/DetailsTab'
 import InfoCard from '@/components/view/InfoCard'
 import ResourceLayout from '@/layouts/ResourceLayout'
 import { api } from '@/api'
+import { mixinDevice } from '@/utils/mixin.js'
 
 export default {
   name: 'ResourceView',
@@ -64,6 +65,7 @@ export default {
     InfoCard,
     ResourceLayout
   },
+  mixins: [mixinDevice],
   props: {
     resource: {
       type: Object,
@@ -95,8 +97,12 @@ export default {
       if (newItem.id === oldItem.id) return
 
       if (this.resource.associatednetworkid) {
-        api('listNetworks', { id: this.resource.associatednetworkid }).then(response => {
-          this.networkService = response.listnetworksresponse.network[0]
+        api('listNetworks', { id: this.resource.associatednetworkid, listall: true }).then(response => {
+          if (response && response.listnetworksresponse && response.listnetworksresponse.network) {
+            this.networkService = response.listnetworksresponse.network[0]
+          } else {
+            this.networkService = {}
+          }
         })
       }
     }
@@ -105,9 +111,17 @@ export default {
     onTabChange (key) {
       this.activeTab = key
     },
-    showHideTab (tab) {
+    showTab (tab) {
       if ('networkServiceFilter' in tab) {
-        if (this.resource.virtualmachineid && tab.name !== 'Firewall') return false
+        if (this.resource && this.resource.virtualmachineid && !this.resource.vpcid && tab.name !== 'firewall') {
+          return false
+        }
+        if (this.resource && this.resource.virtualmachineid && this.resource.vpcid) {
+          return false
+        }
+        if (this.resource && this.resource.vpcid && tab.name !== 'firewall') {
+          return true
+        }
         return this.networkService && this.networkService.service &&
           tab.networkServiceFilter(this.networkService.service)
       } else if ('show' in tab) {

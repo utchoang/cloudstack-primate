@@ -19,7 +19,7 @@
   <div class="form-layout">
     <span v-if="uploadPercentage > 0">
       <a-icon type="loading" />
-      Do not close this form, file upload is in progress...
+      {{ $t('message.upload.file.processing') }}
       <a-progress :percent="uploadPercentage" />
     </span>
     <a-spin :spinning="loading" v-else>
@@ -27,38 +27,38 @@
         :form="form"
         @submit="handleSubmit"
         layout="vertical">
-        <a-form-item :label="$t('templateFileUpload')">
+        <a-form-item :label="$t('label.templatefileupload')">
           <a-upload-dragger
             :multiple="false"
             :fileList="fileList"
             :remove="handleRemove"
             :beforeUpload="beforeUpload"
             v-decorator="['file', {
-              rules: [{ required: true, message: 'Please enter input' }]
+              rules: [{ required: true, message: `${this.$t('message.error.required.input')}`}]
             }]">
             <p class="ant-upload-drag-icon">
               <a-icon type="cloud-upload" />
             </p>
             <p class="ant-upload-text" v-if="fileList.length === 0">
-              Click or drag file to this area to upload
+              {{ $t('label.volume.volumefileupload.description') }}
             </p>
           </a-upload-dragger>
         </a-form-item>
-        <a-form-item :label="$t('name')">
+        <a-form-item :label="$t('label.name')">
           <a-input
             v-decorator="['name', {
-              rules: [{ required: true, message: 'Please enter Volume name' }]
+              rules: [{ required: true, message: $t('message.error.volume.name') }]
             }]"
-            :placeholder="$t('volumename')" />
+            :placeholder="$t('label.volumename')" />
         </a-form-item>
-        <a-form-item :label="$t('zone')">
+        <a-form-item :label="$t('label.zone')">
           <a-select
             v-decorator="['zoneId', {
               initialValue: zoneSelected,
               rules: [
                 {
                   required: true,
-                  message: 'Please select option'
+                  message: `${this.$t('message.error.select')}`
                 }
               ]
             }]">
@@ -67,14 +67,14 @@
             </a-select-option>
           </a-select>
         </a-form-item>
-        <a-form-item :label="$t('format')">
+        <a-form-item :label="$t('label.format')">
           <a-select
             v-decorator="['format', {
               initialValue: formats[0],
               rules: [
                 {
                   required: false,
-                  message: 'Please select option'
+                  message: `${this.$t('message.error.select')}`
                 }
               ]
             }]">
@@ -83,15 +83,15 @@
             </a-select-option>
           </a-select>
         </a-form-item>
-        <a-form-item :label="$t('volumeChecksum')">
+        <a-form-item :label="$t('label.volumechecksum')">
           <a-input
             v-decorator="['checksum']"
-            placeholder="Use the hash that you created at the start of the volume upload procedure"
+            :placeholder="$t('label.volumechecksum.description')"
           />
         </a-form-item>
         <div :span="24" class="action-button">
-          <a-button @click="closeAction">{{ this.$t('Cancel') }}</a-button>
-          <a-button :loading="loading" type="primary" @click="handleSubmit">{{ this.$t('OK') }}</a-button>
+          <a-button @click="closeAction">{{ this.$t('label.cancel') }}</a-button>
+          <a-button :loading="loading" type="primary" @click="handleSubmit">{{ this.$t('label.ok') }}</a-button>
         </div>
       </a-form>
     </a-spin>
@@ -164,8 +164,8 @@ export default {
           const { fileList } = this
           if (this.fileList.length > 1) {
             this.$notification.error({
-              message: 'Volume Upload Failed',
-              description: 'Only one file can be uploaded at a time',
+              message: this.$t('message.upload.volume.failed'),
+              description: this.$t('message.upload.file.limit'),
               duration: 0
             })
           }
@@ -190,14 +190,14 @@ export default {
               timeout: 86400000
             }).then((json) => {
             this.$notification.success({
-              message: 'Upload Successful',
-              description: 'This Volume has been uploaded. Please check its status in the Volumes menu'
+              message: this.$t('message.success.upload'),
+              description: this.$t('message.success.upload.volume.description')
             })
             this.closeAction()
           }).catch(e => {
             this.$notification.error({
-              message: 'Upload Failed',
-              description: `Failed to upload ISO -  ${e}`,
+              message: this.$t('message.upload.failed'),
+              description: `${this.$t('message.upload.iso.failed.description')} -  ${e}`,
               duration: 0
             })
             this.closeAction()

@@ -17,23 +17,28 @@
 
 export default {
   name: 'event',
-  title: 'Events',
+  title: 'label.events',
   icon: 'schedule',
+  docHelp: 'adminguide/events.html',
   permission: ['listEvents'],
-  columns: ['username', 'description', 'state', 'level', 'type', 'account', 'domain', 'created'],
+  columns: ['level', 'type', 'state', 'description', 'username', 'account', 'domain', 'created'],
   details: ['username', 'id', 'description', 'state', 'level', 'type', 'account', 'domain', 'created'],
+  searchFilters: ['level', 'domainid', 'account', 'keyword'],
   related: [{
     name: 'event',
-    title: 'Event Timeline',
+    title: 'label.event.timeline',
     param: 'startid'
   }],
   actions: [
     {
       api: 'archiveEvents',
       icon: 'book',
-      label: 'Archive Event',
-      listView: true,
+      label: 'label.archive.events',
+      message: 'message.confirm.archive.selected.events',
+      docHelp: 'adminguide/events.html#deleting-and-archiving-events-and-alerts',
       dataView: true,
+      groupAction: true,
+      groupMap: (selection) => { return [{ ids: selection.join(',') }] },
       args: ['ids'],
       mapping: {
         ids: {
@@ -44,9 +49,12 @@ export default {
     {
       api: 'deleteEvents',
       icon: 'delete',
-      label: 'Delete Event',
-      listView: true,
+      label: 'label.delete.events',
+      message: 'message.confirm.remove.selected.events',
+      docHelp: 'adminguide/events.html#deleting-and-archiving-events-and-alerts',
       dataView: true,
+      groupAction: true,
+      groupMap: (selection) => { return [{ ids: selection.join(',') }] },
       args: ['ids'],
       mapping: {
         ids: {

@@ -19,22 +19,37 @@
   <div>
     <a-input-search
       style="width: 25vw;float: right;margin-bottom: 10px; z-index: 8"
-      placeholder="Search"
+      :placeholder="$t('label.search')"
       v-model="filter"
       @search="handleSearch" />
     <a-table
       :loading="loading"
       :columns="columns"
       :dataSource="tableSource"
-      :pagination="{showSizeChanger: true}"
       :rowSelection="rowSelection"
+      :pagination="false"
       size="middle"
-      @change="handleTableChange"
       :scroll="{ y: 225 }"
     >
-      <template v-slot:account><a-icon type="user" /> {{ $t('account') }}</template>
-      <template v-slot:domain><a-icon type="block" /> {{ $t('domain') }}</template>
+      <template v-slot:account><a-icon type="user" /> {{ $t('label.account') }}</template>
+      <template v-slot:domain><a-icon type="block" /> {{ $t('label.domain') }}</template>
     </a-table>
+    <div style="display: block; text-align: right;">
+      <a-pagination
+        size="small"
+        :current="options.page"
+        :pageSize="options.pageSize"
+        :total="rowCount"
+        :showTotal="total => `${$t('label.total')} ${total} ${$t('label.items')}`"
+        :pageSizeOptions="['10', '20', '40', '80', '100', '500']"
+        @change="onChangePage"
+        @showSizeChange="onChangePageSize"
+        showSizeChanger>
+        <template slot="buildOptionText" slot-scope="props">
+          <span>{{ props.value }} / {{ $t('label.page') }}</span>
+        </template>
+      </a-pagination>
+    </div>
   </div>
 </template>
 
@@ -46,6 +61,10 @@ export default {
       type: Array,
       default: () => []
     },
+    rowCount: {
+      type: Number,
+      default: () => 0
+    },
     value: {
       type: String,
       default: ''
@@ -53,6 +72,14 @@ export default {
     loading: {
       type: Boolean,
       default: false
+    },
+    preFillContent: {
+      type: Object,
+      default: () => {}
+    },
+    zoneId: {
+      type: String,
+      default: () => ''
     }
   },
   data () {
@@ -61,7 +88,7 @@ export default {
       columns: [
         {
           dataIndex: 'name',
-          title: this.$t('sshKeyPairs'),
+          title: this.$t('label.sshkeypairs'),
           width: '40%'
         },
         {
@@ -75,26 +102,20 @@ export default {
           width: '30%'
         }
       ],
-      selectedRowKeys: [this.$t('noselect')],
-      dataItems: []
+      selectedRowKeys: [this.$t('label.noselect')],
+      dataItems: [],
+      oldZoneId: null,
+      options: {
+        page: 1,
+        pageSize: 10,
+        keyword: null
+      }
     }
   },
   created () {
-    this.dataItems = []
-    this.dataItems.push({
-      name: this.$t('noselect'),
-      account: '-',
-      domain: '-'
-    })
+    this.initDataItem()
   },
   computed: {
-    options () {
-      return {
-        page: 1,
-        pageSize: 10,
-        keyword: ''
-      }
-    },
     tableSource () {
       return this.dataItems.map((item) => {
         return {
@@ -121,23 +142,56 @@ export default {
     },
     items (newData, oldData) {
       if (newData && newData.length > 0) {
+        this.initDataItem()
         this.dataItems = this.dataItems.concat(newData)
+      }
+    },
+    loading () {
+      if (!this.loading) {
+        if (this.preFillContent.keypair) {
+          this.selectedRowKeys = [this.preFillContent.keypair]
+          this.$emit('select-ssh-key-pair-item', this.preFillContent.keypair)
+        } else {
+          if (this.oldZoneId === this.zoneId) {
+            return
+          }
+          this.oldZoneId = this.zoneId
+          this.selectedRowKeys = [this.dataItems[0].name]
+          this.$emit('select-ssh-key-pair-item', this.dataItems[0].name)
+        }
       }
     }
   },
   methods: {
+    initDataItem () {
+      this.dataItems = []
+      if (this.options.page === 1) {
+        this.dataItems.push({
+          name: this.$t('label.noselect'),
+          account: '-',
+          domain: '-'
+        })
+      }
+    },
     onSelectRow (value) {
       this.selectedRowKeys = value
       this.$emit('select-ssh-key-pair-item', value[0])
     },
     handleSearch (value) {
       this.filter = value
+      this.options.page = 1
+      this.options.pageSize = 10
       this.options.keyword = this.filter
       this.$emit('handle-search-filter', this.options)
     },
-    handleTableChange (pagination) {
-      this.options.page = pagination.current
-      this.options.pageSize = pagination.pageSize
+    onChangePage (page, pageSize) {
+      this.options.page = page
+      this.options.pageSize = pageSize
+      this.$emit('handle-search-filter', this.options)
+    },
+    onChangePageSize (page, pageSize) {
+      this.options.page = page
+      this.options.pageSize = pageSize
       this.$emit('handle-search-filter', this.options)
     }
   }

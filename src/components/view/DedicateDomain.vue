@@ -19,8 +19,8 @@
   <div class="form">
     <div class="form__item" :class="{'error': domainError}">
       <a-spin :spinning="domainsLoading">
-        <p class="form__label">{{ $t('domain') }}<span class="required">*</span></p>
-        <p class="required required-label">{{ $t('required') }}</p>
+        <p class="form__label">{{ $t('label.domain') }}<span class="required">*</span></p>
+        <p class="required required-label">{{ $t('label.required') }}</p>
         <a-select style="width: 100%" @change="handleChangeDomain" v-model="domainId">
           <a-select-option v-for="(domain, index) in domainsList" :value="domain.id" :key="index">
             {{ domain.name }}
@@ -29,7 +29,7 @@
       </a-spin>
     </div>
     <div class="form__item" v-if="accountsList">
-      <p class="form__label">Account</p>
+      <p class="form__label">{{ $t('label.account') }}</p>
       <a-select style="width: 100%" @change="handleChangeAccount">
         <a-select-option v-for="(account, index) in accountsList" :value="account.name" :key="index">
           {{ account.name }}
@@ -80,12 +80,9 @@ export default {
           this.domainId = this.domainsList[0].id
           this.handleChangeDomain(this.domainId)
         }
-        this.domainsLoading = false
       }).catch(error => {
-        this.$notification.error({
-          message: `Error ${error.response.status}`,
-          description: error.response.data.errorresponse.errortext
-        })
+        this.$notifyError(error)
+      }).finally(() => {
         this.domainsLoading = false
       })
     },
@@ -98,10 +95,7 @@ export default {
           this.handleChangeAccount(null)
         }
       }).catch(error => {
-        this.$notification.error({
-          message: `Error ${error.response.status}`,
-          description: error.response.data.errorresponse.errortext
-        })
+        this.$notifyError(error)
       })
     },
     handleChangeDomain (e) {

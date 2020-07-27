@@ -11,15 +11,15 @@ Install node: (Debian/Ubuntu)
     curl -sL https://deb.nodesource.com/setup_12.x | sudo -E bash -
     sudo apt-get install -y nodejs
     # Or use distro provided: sudo apt-get install npm nodejs
-    
+
 Install node: (CentOS/Fedora/RHEL)
 
     curl -sL https://rpm.nodesource.com/setup_12.x | sudo bash -
     sudo yum install nodejs
 
-For development, install tools and dependencies system-wide:
+Optionally, you may also install system-wide dev tools:
 
-    sudo npm install -g @vue/cli webpack eslint npm-check-updates
+    sudo npm install -g @vue/cli npm-check-updates
 
 ## Development
 
@@ -104,11 +104,12 @@ server {
 ### Docker
 
 A production-ready Docker container can also be built with the provided
-Dockerfile and build script.
+Dockerfile and build script. Official builds are available here:
+https://hub.docker.com/r/apache/cloudstack-primate
 
-Make sure Docker is installed, then run build.sh:
+Make sure Docker is installed, then run:
 
-    ./build.sh
+    bash tools/docker.sh
 
 Change the example configuration in `nginx/default.conf` according to your needs.
 
@@ -118,39 +119,11 @@ Run Primate:
 
 ## Documentation
 
-### Learning Resources
-
 - VueJS Guide: https://vuejs.org/v2/guide/
-- Ant Design Spec: https://ant.design/docs/spec/introduce
-- Vue Ant Design: https://vue.ant.design/docs/vue/introduce/
+- Vue Ant Design: https://www.antdv.com/docs/vue/introduce/
+- Primate Developer [Docs](docs)
 - JavaScript ES6 Reference: https://www.tutorialspoint.com/es6/
 - Introduction to ES6: https://scrimba.com/g/gintrotoes6
-
-### Primate Development
-
-- Router [Configuration](config.md)
-- [Resource List View](listview.md) customisation
-- [Resource Detail View](detailview.md) customisation
-- [Action](action.md) customisation
-- Styling
-- Testing
-- [Theme](https://vue.ant.design/docs/vue/customize-theme/): Customise via `vue.config.js`
-```ecmascript 6
-  css: {
-    loaderOptions: {
-      less: {
-        modifyVars: {
-          /* Less variables, required modifyVars*/
-          /* Refer to variables at https://vue.ant.design/docs/vue/customize-theme/ */
-          'primary-color': '#F5222D',
-          'link-color': '#F5222D',
-          'border-radius-base': '4px',
-        },
-        javascriptEnabled: true,
-      }
-    }
-  }
-```
 
 ## Attributions
 

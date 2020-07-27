@@ -18,6 +18,8 @@
 // eslint-disable-next-line
 import { UserLayout, BasicLayout, RouteView, BlankLayout, PageView } from '@/layouts'
 import AutogenView from '@/views/AutogenView.vue'
+import IFramePlugin from '@/views/plugins/IFramePlugin.vue'
+import Vue from 'vue'
 
 import compute from '@/config/section/compute'
 import storage from '@/config/section/storage'
@@ -25,19 +27,22 @@ import network from '@/config/section/network'
 import image from '@/config/section/image'
 import project from '@/config/section/project'
 import event from '@/config/section/event'
-import iam from '@/config/section/iam'
+import user from '@/config/section/user'
+import account from '@/config/section/account'
+import domain from '@/config/section/domain'
+import role from '@/config/section/role'
 import infra from '@/config/section/infra'
 import offering from '@/config/section/offering'
 import config from '@/config/section/config'
 import quota from '@/config/section/plugin/quota'
 import cloudian from '@/config/section/plugin/cloudian'
 
-export function generateRouterMap (section) {
+function generateRouterMap (section) {
   var map = {
     name: section.name,
     path: '/' + section.name,
     hidden: section.hidden,
-    meta: { title: section.title, icon: section.icon, docHelp: section.docHelp },
+    meta: { title: section.title, icon: section.icon, docHelp: section.docHelp, searchFilters: section.searchFilters },
     component: RouteView
   }
 
@@ -46,6 +51,9 @@ export function generateRouterMap (section) {
     map.meta.permission = section.children[0].permission
     map.children = []
     for (const child of section.children) {
+      if ('show' in child && !child.show()) {
+        continue
+      }
       var component = child.component ? child.component : AutogenView
       var route = {
         name: child.name,
@@ -58,13 +66,14 @@ export function generateRouterMap (section) {
           docHelp: child.docHelp,
           permission: child.permission,
           resourceType: child.resourceType,
+          filters: child.filters,
           params: child.params ? child.params : {},
           columns: child.columns,
           details: child.details,
+          searchFilters: child.searchFilters,
           related: child.related,
           actions: child.actions,
-          treeView: child.treeView ? child.treeView : false,
-          tabs: child.treeView ? child.tabs : {}
+          tabs: child.tabs
         },
         component: component,
         hideChildrenInMenu: true,
@@ -81,6 +90,7 @@ export function generateRouterMap (section) {
               resourceType: child.resourceType,
               params: child.params ? child.params : {},
               details: child.details,
+              searchFilters: child.searchFilters,
               related: child.related,
               tabs: child.tabs,
               actions: child.actions ? child.actions : []
@@ -113,6 +123,16 @@ export function generateRouterMap (section) {
   } else {
     map.component = section.component ? section.component : AutogenView
     map.hideChildrenInMenu = true
+
+    map.meta.name = section.name
+    map.meta.permission = section.permission
+    map.meta.resourceType = section.resourceType
+    map.meta.details = section.details
+    map.meta.actions = section.actions
+    map.meta.filters = section.filters
+    map.meta.treeView = section.treeView ? section.treeView : false
+    map.meta.tabs = section.treeView ? section.tabs : {}
+
     map.children = [{
       path: '/' + section.name + '/:id',
       actions: section.actions ? section.actions : [],
@@ -127,6 +147,7 @@ export function generateRouterMap (section) {
         params: section.params ? section.params : {},
         details: section.details,
         related: section.related,
+        searchFilters: section.searchFilters,
         tabs: section.tabs,
         actions: section.actions ? section.actions : []
       },
@@ -153,8 +174,8 @@ export function generateRouterMap (section) {
   return map
 }
 
-export const asyncRouterMap = [
-  {
+export function asyncRouterMap () {
+  const routerMap = [{
     path: '/',
     name: 'index',
     component: BasicLayout,
@@ -165,11 +186,11 @@ export const asyncRouterMap = [
         path: '/dashboard',
         name: 'dashboard',
         meta: {
-          title: 'Dashboard',
+          title: 'label.dashboard',
           icon: 'dashboard',
           tabs: [
             {
-              name: 'Dashboard',
+              name: 'dashboard',
               component: () => import('@/views/dashboard/UsageDashboardChart')
             },
             {
@@ -194,9 +215,12 @@ export const asyncRouterMap = [
       generateRouterMap(storage),
       generateRouterMap(network),
       generateRouterMap(image),
-      generateRouterMap(project),
       generateRouterMap(event),
-      generateRouterMap(iam),
+      generateRouterMap(project),
+      generateRouterMap(user),
+      generateRouterMap(account),
+      generateRouterMap(domain),
+      generateRouterMap(role),
       generateRouterMap(infra),
       generateRouterMap(offering),
       generateRouterMap(config),
@@ -238,8 +262,22 @@ export const asyncRouterMap = [
   },
   {
     path: '*', redirect: '/exception/404', hidden: true
+  }]
+
+  const plugins = Vue.prototype.$config.plugins
+  if (plugins && plugins.length > 0) {
+    plugins.map(plugin => {
+      routerMap[0].children.push({
+        path: '/plugins/' + plugin.name,
+        name: plugin.name,
+        component: IFramePlugin,
+        meta: { title: plugin.name, icon: plugin.icon, path: plugin.path }
+      })
+    })
   }
-]
+
+  return routerMap
+}
 
 export const constantRouterMap = [
   {

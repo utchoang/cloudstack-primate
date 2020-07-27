@@ -31,26 +31,36 @@
         :overflowCount="9"
         :count="actionBadge[action.api] ? actionBadge[action.api].badgeNum : 0"
         v-if="action.api in $store.getters.apis &&
-          action.showBadge &&
-          ((!dataView && (action.listView || action.groupAction && selectedRowKeys.length > 0)) || (dataView && action.dataView)) &&
-          ('show' in action ? action.show(resource, $store.getters) : true)">
+          action.showBadge && (
+            (!dataView && (action.listView || (action.groupAction && selectedRowKeys.length > 0))) ||
+            (dataView && action.dataView && ('show' in action ? action.show(resource, $store.getters) : true))
+          )" >
         <a-button
           :icon="action.icon"
           :type="action.icon === 'delete' ? 'danger' : (action.icon === 'plus' ? 'primary' : 'default')"
-          shape="circle"
-          style="margin-right: 5px"
-          @click="execAction(action)" />
+          :shape="!dataView && action.icon === 'plus' ? 'round' : 'circle'"
+          style="margin-left: 5px"
+          @click="execAction(action)">
+          <span v-if="!dataView && action.icon === 'plus'">
+            {{ $t(action.label) }}
+          </span>
+        </a-button>
       </a-badge>
       <a-button
         v-if="action.api in $store.getters.apis &&
-          !action.showBadge &&
-          ((!dataView && (action.listView || action.groupAction && selectedRowKeys.length > 0)) || (dataView && action.dataView)) &&
-          ('show' in action ? action.show(resource, $store.getters) : true)"
+          !action.showBadge && (
+            (!dataView && (action.listView || (action.groupAction && selectedRowKeys.length > 0))) ||
+            (dataView && action.dataView && ('show' in action ? action.show(resource, $store.getters) : true))
+          )"
         :icon="action.icon"
         :type="action.icon === 'delete' ? 'danger' : (action.icon === 'plus' ? 'primary' : 'default')"
-        shape="circle"
+        :shape="!dataView && action.icon === 'plus' ? 'round' : 'circle'"
         style="margin-left: 5px"
-        @click="execAction(action)" />
+        @click="execAction(action)">
+        <span v-if="!dataView && action.icon === 'plus'">
+          {{ $t(action.label) }}
+        </span>
+      </a-button>
     </a-tooltip>
   </span>
 </template>
@@ -66,7 +76,7 @@ export default {
   },
   data () {
     return {
-      actionBadge: []
+      actionBadge: {}
     }
   },
   mounted () {
@@ -110,10 +120,11 @@ export default {
   },
   methods: {
     execAction (action) {
+      action.resource = this.resource
       this.$emit('exec-action', action)
     },
     handleShowBadge () {
-      const dataBadge = {}
+      this.actionBadge = {}
       const arrAsync = []
       const actionBadge = this.actions.filter(action => action.showBadge === true)
 
@@ -138,7 +149,7 @@ export default {
                 }
               }
 
-              if (json[responseJsonName].count && json[responseJsonName].count > 0) {
+              if (json[responseJsonName] && json[responseJsonName].count && json[responseJsonName].count > 0) {
                 response.count = json[responseJsonName].count
               }
 
@@ -151,12 +162,10 @@ export default {
 
         Promise.all(arrAsync).then(response => {
           for (let j = 0; j < response.length; j++) {
-            this.$set(dataBadge, response[j].api, {})
-            this.$set(dataBadge[response[j].api], 'badgeNum', response[j].count)
+            this.$set(this.actionBadge, response[j].api, {})
+            this.$set(this.actionBadge[response[j].api], 'badgeNum', response[j].count)
           }
-        })
-
-        this.actionBadge = dataBadge
+        }).catch(() => {})
       }
     }
   }

@@ -17,9 +17,10 @@
 
 <template>
   <div>
+    {{ $t('message.select.affinity.groups') }}
     <a-input-search
       style="width: 25vw;float: right;margin-bottom: 10px; z-index: 8"
-      placeholder="Search"
+      :placeholder="$t('label.search')"
       v-model="filter"
       @search="handleSearch" />
     <a-table
@@ -27,12 +28,29 @@
       :columns="columns"
       :dataSource="items"
       :rowKey="record => record.id"
-      :pagination="{showSizeChanger: true}"
+      :pagination="false"
       :rowSelection="rowSelection"
       size="middle"
       :scroll="{ y: 225 }"
     >
     </a-table>
+
+    <div style="display: block; text-align: right;">
+      <a-pagination
+        size="small"
+        :current="options.page"
+        :pageSize="options.pageSize"
+        :total="rowCount"
+        :showTotal="total => `${$t('label.total')} ${total} ${$t('label.items')}`"
+        :pageSizeOptions="['10', '20', '40', '80', '100', '500']"
+        @change="onChangePage"
+        @showSizeChange="onChangePageSize"
+        showSizeChanger>
+        <template slot="buildOptionText" slot-scope="props">
+          <span>{{ props.value }} / {{ $t('label.page') }}</span>
+        </template>
+      </a-pagination>
+    </div>
   </div>
 </template>
 
@@ -46,6 +64,10 @@ export default {
       type: Array,
       default: () => []
     },
+    rowCount: {
+      type: Number,
+      default: () => 0
+    },
     value: {
       type: Array,
       default: () => []
@@ -53,6 +75,14 @@ export default {
     loading: {
       type: Boolean,
       default: false
+    },
+    preFillContent: {
+      type: Object,
+      default: () => {}
+    },
+    zoneId: {
+      type: String,
+      default: () => ''
     }
   },
   data () {
@@ -61,26 +91,25 @@ export default {
       columns: [
         {
           dataIndex: 'name',
-          title: this.$t('Affinity Groups'),
+          title: this.$t('label.affinity.groups'),
           width: '40%'
         },
         {
           dataIndex: 'description',
-          title: this.$t('description'),
+          title: this.$t('label.description'),
           width: '60%'
         }
       ],
-      selectedRowKeys: []
+      selectedRowKeys: [],
+      oldZoneId: null,
+      options: {
+        page: 1,
+        pageSize: 10,
+        keyword: null
+      }
     }
   },
   computed: {
-    options () {
-      return {
-        page: 1,
-        pageSize: 10,
-        keyword: ''
-      }
-    },
     rowSelection () {
       return {
         type: 'checkbox',
@@ -96,17 +125,39 @@ export default {
       if (newValue && !_.isEqual(newValue, oldValue)) {
         this.selectedRowKeys = newValue
       }
+    },
+    loading () {
+      if (!this.loading) {
+        if (this.preFillContent.affinitygroupids) {
+          this.selectedRowKeys = this.preFillContent.affinitygroupids
+          this.$emit('select-affinity-group-item', this.preFillContent.affinitygroupids)
+        } else {
+          if (this.oldZoneId === this.zoneId) {
+            return
+          }
+          this.oldZoneId = this.zoneId
+          this.selectedRowKeys = []
+          this.$emit('select-affinity-group-item', null)
+        }
+      }
     }
   },
   methods: {
     handleSearch (value) {
       this.filter = value
+      this.options.page = 1
+      this.options.pageSize = 10
       this.options.keyword = this.filter
       this.$emit('handle-search-filter', this.options)
     },
-    handleTableChange (pagination) {
-      this.options.page = pagination.current
-      this.options.pageSize = pagination.pageSize
+    onChangePage (page, pageSize) {
+      this.options.page = page
+      this.options.pageSize = pageSize
+      this.$emit('handle-search-filter', this.options)
+    },
+    onChangePageSize (page, pageSize) {
+      this.options.page = page
+      this.options.pageSize = pageSize
       this.$emit('handle-search-filter', this.options)
     }
   }

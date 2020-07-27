@@ -20,40 +20,40 @@
     <div>
       <div class="form">
         <div class="form__item">
-          <div class="form__label">{{ $t('sourcecidr') }}</div>
+          <div class="form__label">{{ $t('label.sourcecidr') }}</div>
           <a-input v-model="newRule.cidrlist"></a-input>
         </div>
         <div class="form__item">
-          <div class="form__label">{{ $t('destcidr') }}</div>
+          <div class="form__label">{{ $t('label.destcidr') }}</div>
           <a-input v-model="newRule.destcidrlist"></a-input>
         </div>
         <div class="form__item">
-          <div class="form__label">{{ $t('protocol') }}</div>
+          <div class="form__label">{{ $t('label.protocol') }}</div>
           <a-select v-model="newRule.protocol" style="width: 100%;" @change="resetRulePorts">
-            <a-select-option value="tcp">TCP</a-select-option>
-            <a-select-option value="udp">UDP</a-select-option>
-            <a-select-option value="icmp">ICMP</a-select-option>
-            <a-select-option value="all">All</a-select-option>
+            <a-select-option value="tcp">{{ $t('label.tcp') | capitalise }}</a-select-option>
+            <a-select-option value="udp">{{ $t('label.udp') | capitalise }}</a-select-option>
+            <a-select-option value="icmp">{{ $t('label.icmp') | capitalise }}</a-select-option>
+            <a-select-option value="all">{{ $t('label.all') }}</a-select-option>
           </a-select>
         </div>
         <div v-show="newRule.protocol === 'tcp' || newRule.protocol === 'udp'" class="form__item">
-          <div class="form__label">{{ $t('startport') }}</div>
+          <div class="form__label">{{ $t('label.startport') }}</div>
           <a-input v-model="newRule.startport"></a-input>
         </div>
         <div v-show="newRule.protocol === 'tcp' || newRule.protocol === 'udp'" class="form__item">
-          <div class="form__label">{{ $t('endport') }}</div>
+          <div class="form__label">{{ $t('label.endport') }}</div>
           <a-input v-model="newRule.endport"></a-input>
         </div>
         <div v-show="newRule.protocol === 'icmp'" class="form__item">
-          <div class="form__label">{{ $t('icmptype') }}</div>
+          <div class="form__label">{{ $t('label.icmptype') }}</div>
           <a-input v-model="newRule.icmptype"></a-input>
         </div>
         <div v-show="newRule.protocol === 'icmp'" class="form__item">
-          <div class="form__label">{{ $t('icmpcode') }}</div>
+          <div class="form__label">{{ $t('label.icmpcode') }}</div>
           <a-input v-model="newRule.icmpcode"></a-input>
         </div>
         <div class="form__item">
-          <a-button type="primary" icon="plus" @click="addRule">{{ $t('add') }}</a-button>
+          <a-button :disabled="!('createEgressFirewallRule' in $store.getters.apis)" type="primary" icon="plus" @click="addRule">{{ $t('label.add') }}</a-button>
         </div>
       </div>
     </div>
@@ -78,7 +78,7 @@
         {{ record.icmpcode || record.endport >= 0 ? record.icmpcode || record.endport : 'All' }}
       </template>
       <template slot="actions" slot-scope="record">
-        <a-button shape="round" type="danger" icon="delete" @click="deleteRule(record)" />
+        <a-button :disabled="!('deleteEgressFirewallRule' in $store.getters.apis)" shape="circle" type="danger" icon="delete" @click="deleteRule(record)" />
       </template>
     </a-table>
     <a-pagination
@@ -87,11 +87,15 @@
       :current="page"
       :pageSize="pageSize"
       :total="totalCount"
-      :showTotal="total => `Total ${total} items`"
+      :showTotal="total => `${$t('label.total')} ${total} ${$t('label.items')}`"
       :pageSizeOptions="['10', '20', '40', '80', '100']"
       @change="handleChangePage"
       @showSizeChange="handleChangePageSize"
-      showSizeChanger/>
+      showSizeChanger>
+      <template slot="buildOptionText" slot-scope="props">
+        <span>{{ props.value }} / {{ $t('label.page') }}</span>
+      </template>
+    </a-pagination>
 
   </div>
 </template>
@@ -126,27 +130,27 @@ export default {
       pageSize: 10,
       columns: [
         {
-          title: this.$t('sourcecidr'),
+          title: this.$t('label.sourcecidr'),
           dataIndex: 'cidrlist'
         },
         {
-          title: this.$t('destcidr'),
+          title: this.$t('label.destcidr'),
           dataIndex: 'destcidrlist'
         },
         {
-          title: this.$t('protocol'),
+          title: this.$t('label.protocol'),
           scopedSlots: { customRender: 'protocol' }
         },
         {
-          title: `ICMP Type / Start Port`,
+          title: this.$t('label.icmptype.start.port'),
           scopedSlots: { customRender: 'startport' }
         },
         {
-          title: `ICMP Code / End Port`,
+          title: this.$t('label.icmpcode.end.port'),
           scopedSlots: { customRender: 'endport' }
         },
         {
-          title: this.$t('action'),
+          title: this.$t('label.action'),
           scopedSlots: { customRender: 'actions' }
         }
       ]
@@ -157,7 +161,7 @@ export default {
   },
   filters: {
     capitalise: val => {
-      if (val === 'all') return 'All'
+      if (val === 'all') return this.$t('label.all')
       return val.toUpperCase()
     }
   },
@@ -190,19 +194,16 @@ export default {
       api('deleteEgressFirewallRule', { id: rule.id }).then(response => {
         this.$pollJob({
           jobId: response.deleteegressfirewallruleresponse.jobid,
-          successMessage: `Successfully removed Egress rule`,
+          successMessage: this.$t('message.success.remove.egress.rule'),
           successMethod: () => this.fetchData(),
-          errorMessage: 'Removing Egress rule failed',
+          errorMessage: this.$t('message.remove.egress.rule.failed'),
           errorMethod: () => this.fetchData(),
-          loadingMessage: `Deleting Egress rule...`,
-          catchMessage: 'Error encountered while fetching async job result',
+          loadingMessage: this.$t('message.remove.egress.rule.processing'),
+          catchMessage: this.$t('error.fetching.async.job.result'),
           catchMethod: () => this.fetchData()
         })
       }).catch(error => {
-        this.$notification.error({
-          message: `Error ${error.response.status}`,
-          description: error.response.data.errorresponse.errortext
-        })
+        this.$notifyError(error)
         this.fetchData()
       })
     },
@@ -211,28 +212,25 @@ export default {
       api('createEgressFirewallRule', { ...this.newRule }).then(response => {
         this.$pollJob({
           jobId: response.createegressfirewallruleresponse.jobid,
-          successMessage: `Successfully added new Egress rule`,
+          successMessage: this.$t('message.success.add.egress.rule'),
           successMethod: () => {
             this.resetAllRules()
             this.fetchData()
           },
-          errorMessage: 'Adding new Egress rule failed',
+          errorMessage: this.$t('message.add.egress.rule.failed'),
           errorMethod: () => {
             this.resetAllRules()
             this.fetchData()
           },
-          loadingMessage: `Adding new Egress rule...`,
-          catchMessage: 'Error encountered while fetching async job result',
+          loadingMessage: this.$t('message.add.egress.rule.processing'),
+          catchMessage: this.$t('error.fetching.async.job.result'),
           catchMethod: () => {
             this.resetAllRules()
             this.fetchData()
           }
         })
       }).catch(error => {
-        this.$notification.error({
-          message: `Error ${error.response.status}`,
-          description: error.response.data.createegressfirewallruleresponse.errortext
-        })
+        this.$notifyError(error)
         this.resetAllRules()
         this.fetchData()
       })

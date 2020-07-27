@@ -22,21 +22,39 @@
         :form="form"
         @submit="handleSubmit"
         layout="vertical">
-        <a-form-item :label="$t('name')">
+        <a-form-item>
+          <span slot="label">
+            {{ $t('label.name') }}
+            <a-tooltip :title="apiParams.name.description">
+              <a-icon type="info-circle" style="color: rgba(0,0,0,.45)" />
+            </a-tooltip>
+          </span>
           <a-input
             v-decorator="['name', {
-              rules: [{ required: true, message: 'Please enter name' }]
+              rules: [{ required: true, message: $t('message.error.name') }]
             }]"
-            :placeholder="this.$t('Name')"/>
+            :placeholder="this.$t('label.name')"/>
         </a-form-item>
-        <a-form-item :label="$t('displaytext')">
+        <a-form-item>
+          <span slot="label">
+            {{ $t('label.displaytext') }}
+            <a-tooltip :title="apiParams.displaytext.description">
+              <a-icon type="info-circle" style="color: rgba(0,0,0,.45)" />
+            </a-tooltip>
+          </span>
           <a-input
             v-decorator="['displaytext', {
-              rules: [{ required: true, message: 'Please enter description' }]
+              rules: [{ required: true, message: $t('message.error.description') }]
             }]"
-            :placeholder="this.$t('displaytext')"/>
+            :placeholder="this.$t('label.displaytext')"/>
         </a-form-item>
-        <a-form-item :label="$t('supportedservices')">
+        <a-form-item>
+          <span slot="label">
+            {{ $t('label.supportedservices') }}
+            <a-tooltip :title="apiParams.supportedservices.description">
+              <a-icon type="info-circle" style="color: rgba(0,0,0,.45)" />
+            </a-tooltip>
+          </span>
           <div class="supported-services-container" scroll-to="last-child">
             <a-list itemLayout="horizontal" :dataSource="this.supportedServices">
               <a-list-item slot="renderItem" slot-scope="item">
@@ -52,26 +70,32 @@
             </a-list>
           </div>
         </a-form-item>
-        <a-form-item :label="$t('regionlevelvpc')" v-if="this.connectivityServiceChecked">
+        <a-form-item :label="$t('label.service.connectivity.regionlevelvpccapabilitycheckbox')" v-if="this.connectivityServiceChecked">
           <a-switch v-decorator="['regionlevelvpc', {initialValue: true}]" defaultChecked />
         </a-form-item>
-        <a-form-item :label="$t('distributedrouter')" v-if="this.connectivityServiceChecked">
+        <a-form-item :label="$t('label.service.connectivity.distributedroutercapabilitycheckbox')" v-if="this.connectivityServiceChecked">
           <a-switch v-decorator="['distributedrouter', {initialValue: true}]" defaultChecked />
         </a-form-item>
-        <a-form-item :label="$t('redundantrouter')" v-if="this.sourceNatServiceChecked">
+        <a-form-item :label="$t('label.redundantrouter')" v-if="this.sourceNatServiceChecked">
           <a-switch v-decorator="['redundantrouter', {initialValue: false}]" />
         </a-form-item>
-        <a-form-item :label="$t('ispublic')" v-if="this.isAdmin()">
+        <a-form-item :label="$t('label.ispublic')" v-if="this.isAdmin()">
           <a-switch v-decorator="['ispublic', {initialValue: this.isPublic}]" :defaultChecked="this.isPublic" @change="val => { this.isPublic = val }" />
         </a-form-item>
-        <a-form-item :label="$t('domainid')" v-if="!this.isPublic">
+        <a-form-item v-if="!this.isPublic">
+          <span slot="label">
+            {{ $t('label.domainid') }}
+            <a-tooltip :title="apiParams.domainid.description">
+              <a-icon type="info-circle" style="color: rgba(0,0,0,.45)" />
+            </a-tooltip>
+          </span>
           <a-select
             mode="multiple"
             v-decorator="['domainid', {
               rules: [
                 {
                   required: true,
-                  message: 'Please select option'
+                  message: `${this.$t('message.error.select')}`
                 }
               ]
             }]"
@@ -81,13 +105,19 @@
               return option.componentOptions.children[0].text.toLowerCase().indexOf(input.toLowerCase()) >= 0
             }"
             :loading="domainLoading"
-            :placeholder="this.$t('domain')">
+            :placeholder="this.$t('label.domain')">
             <a-select-option v-for="(opt, optIndex) in this.domains" :key="optIndex">
               {{ opt.name || opt.description }}
             </a-select-option>
           </a-select>
         </a-form-item>
-        <a-form-item :label="$t('zoneid')">
+        <a-form-item>
+          <span slot="label">
+            {{ $t('label.zoneid') }}
+            <a-tooltip :title="apiParams.zoneid.description">
+              <a-icon type="info-circle" style="color: rgba(0,0,0,.45)" />
+            </a-tooltip>
+          </span>
           <a-select
             id="zone-selection"
             mode="multiple"
@@ -96,7 +126,7 @@
                 {
                   validator: (rule, value, callback) => {
                     if (value && value.length > 1 && value.indexOf(0) !== -1) {
-                      callback('All Zones cannot be combined with any other zone')
+                      callback($t('message.error.zone.combined'))
                     }
                     callback()
                   }
@@ -109,7 +139,7 @@
               return option.componentOptions.children[0].text.toLowerCase().indexOf(input.toLowerCase()) >= 0
             }"
             :loading="zoneLoading"
-            :placeholder="this.$t('zone')">
+            :placeholder="this.$t('label.zone')">
             <a-select-option v-for="(opt, optIndex) in this.zones" :key="optIndex">
               {{ opt.name || opt.description }}
             </a-select-option>
@@ -117,8 +147,8 @@
         </a-form-item>
       </a-form>
       <div :span="24" class="action-button">
-        <a-button @click="closeAction">{{ this.$t('Cancel') }}</a-button>
-        <a-button :loading="loading" type="primary" @click="handleSubmit">{{ this.$t('OK') }}</a-button>
+        <a-button @click="closeAction">{{ this.$t('label.cancel') }}</a-button>
+        <a-button :loading="loading" type="primary" @click="handleSubmit">{{ this.$t('label.ok') }}</a-button>
       </div>
     </a-spin>
   </div>
@@ -152,6 +182,11 @@ export default {
   },
   beforeCreate () {
     this.form = this.$form.createForm(this)
+    this.apiParams = {}
+    var apiConfig = this.$store.getters.apis.createVPCOffering || {}
+    apiConfig.params.forEach(param => {
+      this.apiParams[param.name] = param
+    })
   },
   created () {
     this.zones = [
@@ -366,12 +401,9 @@ export default {
           params.supportedservices = ''
         }
         api('createVPCOffering', params).then(json => {
-          this.$message.success('VPC offering created: ' + values.name)
+          this.$message.success(`${this.$t('message.create.vpc.offering')}: ` + values.name)
         }).catch(error => {
-          this.$notification.error({
-            message: 'Request Failed',
-            description: (error.response && error.response.headers && error.response.headers['x-description']) || error.message
-          })
+          this.$notifyError(error)
         }).finally(() => {
           this.loading = false
           this.$emit('refresh-data')

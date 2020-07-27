@@ -48,10 +48,10 @@
       </div>
       <div slot="interval" slot-scope="text, record">
         <span v-if="record.intervaltype===2">
-          {{ $t('label.interval.weekly').replace('{number}', $t(listDayOfWeek[record.schedule.split(':')[2] - 1])) }}
+          {{ `${$t('label.every')} ${$t(listDayOfWeek[record.schedule.split(':')[2] - 1])}` }}
         </span>
         <span v-else-if="record.intervaltype===3">
-          {{ $t('label.interval.monthly').replace('{number}', record.schedule.split(':')[2]) }}
+          {{ `${$t('label.day')} ${record.schedule.split(':')[2]} ${$t('label.of.month')}` }}
         </span>
       </div>
       <div slot="timezone" slot-scope="text, record">
@@ -63,7 +63,7 @@
       <div slot="action" class="account-button-action" slot-scope="text, record">
         <a-tooltip placement="top">
           <template slot="title">
-            {{ $t('label.delete.schedule') }}
+            {{ $t('label.delete') }}
           </template>
           <a-button
             type="danger"
@@ -115,7 +115,7 @@ export default {
         scopedSlots: { customRender: 'icon' }
       },
       {
-        title: this.$t('time'),
+        title: this.$t('label.time'),
         dataIndex: 'schedule',
         scopedSlots: { customRender: 'time' }
       },
@@ -125,22 +125,22 @@ export default {
         scopedSlots: { customRender: 'interval' }
       },
       {
-        title: this.$t('timezone'),
+        title: this.$t('label.timezone'),
         dataIndex: 'timezone',
         scopedSlots: { customRender: 'timezone' }
       },
       {
-        title: this.$t('keep'),
+        title: this.$t('label.keep'),
         dataIndex: 'maxsnaps',
         scopedSlots: { customRender: 'keep' }
       },
       {
-        title: this.$t('tags'),
+        title: this.$t('label.tags'),
         dataIndex: 'tags',
         scopedSlots: { customRender: 'tags' }
       },
       {
-        title: this.$t('action'),
+        title: this.$t('label.action'),
         dataIndex: 'action',
         width: 50,
         scopedSlots: { customRender: 'action' }
@@ -163,17 +163,14 @@ export default {
       api('deleteSnapshotPolicies', params).then(json => {
         if (json.deletesnapshotpoliciesresponse.success) {
           this.$notification.success({
-            message: 'Delete Snapshot Policy',
-            description: 'Successfully deleted snapshot policy'
+            message: this.$t('label.delete.snapshot.policy'),
+            description: this.$t('message.success.delete.snapshot.policy')
           })
 
           this.$emit('refresh')
         }
       }).catch(error => {
-        this.$notification.error({
-          message: 'Request Failed',
-          description: (error.response && error.response.headers && error.response.headers['x-description']) || error.message
-        })
+        this.$notifyError(error)
       }).finally(() => {
         this.actionLoading = false
       })

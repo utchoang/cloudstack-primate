@@ -20,51 +20,57 @@
 
     <div>
       <div style="margin-bottom: 20px;">
-        <div class="form__label">Add by:</div>
+        <div class="form__label">{{ $t('label.add.by') }}:</div>
         <a-radio-group @change="resetAllRules" v-model="addType">
-          <a-radio value="cidr">CIDR</a-radio>
-          <a-radio value="account">Account</a-radio>
+          <a-radio value="cidr">{{ $t('label.cidr') }}</a-radio>
+          <a-radio value="account">{{ $t('label.account') }}</a-radio>
         </a-radio-group>
       </div>
 
       <div class="form">
         <div class="form__item">
-          <div class="form__label">{{ $t('protocol') }}</div>
+          <div class="form__label">{{ $t('label.protocol') }}</div>
           <a-select v-model="newRule.protocol" style="width: 100%;" @change="resetRulePorts">
-            <a-select-option value="tcp">{{ $t('tcp') | capitalise }}</a-select-option>
-            <a-select-option value="udp">{{ $t('udp') | capitalise }}</a-select-option>
-            <a-select-option value="icmp">{{ $t('icmp') | capitalise }}</a-select-option>
+            <a-select-option value="tcp">{{ $t('label.tcp') | capitalise }}</a-select-option>
+            <a-select-option value="udp">{{ $t('label.udp') | capitalise }}</a-select-option>
+            <a-select-option value="icmp">{{ $t('label.icmp') | capitalise }}</a-select-option>
+            <a-select-option value="all">{{ $t('label.all') | capitalise }}</a-select-option>
+            <a-select-option value="protocolnumber">{{ $t('label.protocol.number') | capitalise }}</a-select-option>
           </a-select>
         </div>
         <div v-show="newRule.protocol === 'tcp' || newRule.protocol === 'udp'" class="form__item">
-          <div class="form__label">{{ $t('startport') }}</div>
+          <div class="form__label">{{ $t('label.startport') }}</div>
           <a-input v-model="newRule.startport"></a-input>
         </div>
         <div v-show="newRule.protocol === 'tcp' || newRule.protocol === 'udp'" class="form__item">
-          <div class="form__label">{{ $t('endport') }}</div>
+          <div class="form__label">{{ $t('label.endport') }}</div>
           <a-input v-model="newRule.endport"></a-input>
         </div>
+        <div v-show="newRule.protocol === 'protocolnumber'" class="form__item">
+          <div class="form__label">{{ $t('label.protocol.number') }}</div>
+          <a-input v-model="newRule.protocolnumber"></a-input>
+        </div>
         <div v-show="newRule.protocol === 'icmp'" class="form__item">
-          <div class="form__label">{{ $t('icmptype') }}</div>
+          <div class="form__label">{{ $t('label.icmptype') }}</div>
           <a-input v-model="newRule.icmptype"></a-input>
         </div>
         <div v-show="newRule.protocol === 'icmp'" class="form__item">
-          <div class="form__label">{{ $t('icmpcode') }}</div>
+          <div class="form__label">{{ $t('label.icmpcode') }}</div>
           <a-input v-model="newRule.icmpcode"></a-input>
         </div>
         <div class="form__item" v-if="addType === 'cidr'">
-          <div class="form__label">CIDR</div>
+          <div class="form__label">{{ $t('label.cidr') }}</div>
           <a-input v-model="newRule.cidrlist"></a-input>
         </div>
         <div class="form__item" v-if="addType === 'account'">
-          <div class="form__label">Account, Security Group</div>
+          <div class="form__label">{{ $t('label.account.and.security.group') }}</div>
           <div style="display:flex;">
             <a-input v-model="newRule.usersecuritygrouplist.account" style="margin-right: 10px;"></a-input>
             <a-input v-model="newRule.usersecuritygrouplist.group"></a-input>
           </div>
         </div>
         <div class="form__item" style="flex: 0">
-          <a-button type="primary" @click="handleAddRule">{{ $t('label.add') }}</a-button>
+          <a-button :disabled="!('authorizeSecurityGroupInress' in $store.getters.apis) && !('authorizeSecurityGroupEgress' in $store.getters.apis)" type="primary" @click="handleAddRule">{{ $t('label.add') }}</a-button>
         </div>
       </div>
     </div>
@@ -74,8 +80,8 @@
       style="overflow-y: auto"
       :columns="columns"
       :dataSource="rules"
-      :pagination="false"
-      :rowKey="record => record.id">
+      :pagination="{ pageSizeOptions: ['10', '20', '40', '80', '100', '500'], showSizeChanger: true}"
+      :rowKey="record => record.ruleid">
       <template slot="protocol" slot-scope="record">
         {{ record.protocol | capitalise }}
       </template>
@@ -84,34 +90,42 @@
           {{ record.account }} - {{ record.securitygroupname }}
         </div>
       </template>
+      <template slot="startport" slot-scope="text, record">
+        <div v-if="!['tcp', 'udp', 'icmp'].includes(record.protocol)">{{ $t('label.all') }}</div>
+        <div v-else>{{ text }}</div>
+      </template>
+      <template slot="endport" slot-scope="text, record">
+        <div v-if="!['tcp', 'udp', 'icmp'].includes(record.protocol)">{{ $t('label.all') }}</div>
+        <div v-else>{{ text }}</div>
+      </template>
       <template slot="actions" slot-scope="record">
-        <a-button shape="round" icon="tag" class="rule-action" @click="() => openTagsModal(record)" />
+        <a-button shape="circle" icon="tag" class="rule-action" @click="() => openTagsModal(record)" />
         <a-popconfirm
           :title="$t('label.delete') + '?'"
           @confirm="handleDeleteRule(record)"
-          okText="Yes"
-          cancelText="No"
+          :okText="$t('label.yes')"
+          :cancelText="$t('label.no')"
         >
-          <a-button shape="round" type="danger" icon="delete" class="rule-action" />
+          <a-button :disabled="!('revokeSecurityGroupIngress' in $store.getters.apis) && !('revokeSecurityGroupEgress' in $store.getters.apis)" shape="circle" type="danger" icon="delete" class="rule-action" />
         </a-popconfirm>
       </template>
     </a-table>
 
-    <a-modal title="Edit Tags" v-model="tagsModalVisible" :footer="null" :afterClose="closeModal">
+    <a-modal :title="$t('label.edit.tags')" v-model="tagsModalVisible" :footer="null" :afterClose="closeModal">
       <a-spin v-if="tagsLoading"></a-spin>
 
       <div v-else>
         <a-form :form="newTagsForm" class="add-tags" @submit="handleAddTag">
           <div class="add-tags__input">
-            <p class="add-tags__label">{{ $t('key') }}</p>
+            <p class="add-tags__label">{{ $t('label.key') }}</p>
             <a-form-item>
-              <a-input v-decorator="['key', { rules: [{ required: true, message: 'Please specify a tag key'}] }]" />
+              <a-input v-decorator="['key', { rules: [{ required: true, message: this.$t('message.specifiy.tag.key')}] }]" />
             </a-form-item>
           </div>
           <div class="add-tags__input">
-            <p class="add-tags__label">{{ $t('value') }}</p>
+            <p class="add-tags__label">{{ $t('label.value') }}</p>
             <a-form-item>
-              <a-input v-decorator="['value', { rules: [{ required: true, message: 'Please specify a tag value'}] }]" />
+              <a-input v-decorator="['value', { rules: [{ required: true, message: this.$t('message.specifiy.tag.value')}] }]" />
             </a-form-item>
           </div>
           <a-button type="primary" html-type="submit">{{ $t('label.add') }}</a-button>
@@ -127,7 +141,7 @@
           </div>
         </div>
 
-        <a-button class="add-tags-done" @click="tagsModalVisible = false" type="primary">{{ $t('OK') }}</a-button>
+        <a-button class="add-tags-done" @click="tagsModalVisible = false" type="primary">{{ $t('label.ok') }}</a-button>
       </div>
 
     </a-modal>
@@ -153,6 +167,7 @@ export default {
         protocol: 'tcp',
         startport: null,
         endport: null,
+        protocolnumber: null,
         cidrlist: null,
         icmptype: null,
         icmpcode: null,
@@ -172,37 +187,41 @@ export default {
       tagsLoading: false,
       addType: 'cidr',
       tabType: null,
+      page: 1,
+      pagesize: 10,
       columns: [
         {
-          title: this.$t('protocol'),
+          title: this.$t('label.protocol'),
           scopedSlots: { customRender: 'protocol' }
         },
         {
-          title: this.$t('startport'),
-          dataIndex: 'startport'
+          title: this.$t('label.startport'),
+          dataIndex: 'startport',
+          scopedSlots: { customRender: 'startport' }
         },
         {
-          title: this.$t('endport'),
-          dataIndex: 'endport'
+          title: this.$t('label.endport'),
+          dataIndex: 'endport',
+          scopedSlots: { customRender: 'endport' }
         },
         {
-          title: 'ICMP Type',
+          title: this.$t('label.icmptype'),
           dataIndex: 'icmptype'
         },
         {
-          title: 'ICMP Code',
+          title: this.$t('label.icmpcode'),
           dataIndex: 'icmpcode'
         },
         {
-          title: 'CIDR',
+          title: this.$t('label.cidr'),
           dataIndex: 'cidr'
         },
         {
-          title: 'Account, Security Group',
+          title: this.$t('label.account.and.security.group'),
           scopedSlots: { customRender: 'account' }
         },
         {
-          title: this.$t('action'),
+          title: this.$t('label.action'),
           scopedSlots: { customRender: 'actions' }
         }
       ]
@@ -219,7 +238,7 @@ export default {
   },
   filters: {
     capitalise: val => {
-      if (val === 'all') return 'All'
+      if (val === 'all') return this.$t('label.all')
       return val.toUpperCase()
     }
   },
@@ -237,7 +256,7 @@ export default {
         securitygroupid: this.resource.id,
         domainid: this.resource.domainid,
         account: this.resource.account,
-        protocol: this.newRule.protocol,
+        protocol: this.newRule.protocol === 'protocolnumber' ? this.newRule.protocolnumber : this.newRule.protocol,
         startport: this.newRule.startport,
         endport: this.newRule.endport,
         cidrlist: this.newRule.cidrlist,
@@ -249,30 +268,25 @@ export default {
         this.$pollJob({
           jobId: this.tabType === 'ingress' ? response.authorizesecuritygroupingressresponse.jobid
             : response.authorizesecuritygroupegressresponse.jobid,
-          successMessage: `Successfully added new rule`,
+          successMessage: this.$t('message.success.add.rule'),
           successMethod: () => {
             this.parentFetchData()
             this.parentToggleLoading()
           },
-          errorMessage: 'Failed to add new rule',
+          errorMessage: this.$t('message.add.rule.failed'),
           errorMethod: () => {
             this.parentFetchData()
             this.parentToggleLoading()
           },
-          loadingMessage: `Adding new security-group rule...`,
-          catchMessage: 'Error encountered while fetching async job result',
+          loadingMessage: this.$t('message.add.rule.processing'),
+          catchMessage: this.$t('error.fetching.async.job.result'),
           catchMethod: () => {
             this.parentFetchData()
             this.parentToggleLoading()
           }
         })
       }).catch(error => {
-        this.$notification.error({
-          message: `Error ${error.response.status}`,
-          description: this.tabType === 'ingress'
-            ? error.response.data.authorizesecuritygroupingressresponse.errortext
-            : error.response.data.authorizesecuritygroupegressresponse.errortext
-        })
+        this.$notifyError(error)
         this.parentToggleLoading()
       })
     },
@@ -286,29 +300,25 @@ export default {
         this.$pollJob({
           jobId: this.tabType === 'ingress' ? response.revokesecuritygroupingressresponse.jobid
             : response.revokesecuritygroupegressresponse.jobid,
-          successMessage: `Successfully deleted rule`,
+          successMessage: this.$t('message.success.remove.rule'),
           successMethod: () => {
             this.parentFetchData()
             this.parentToggleLoading()
           },
-          errorMessage: 'Failed to delete rule',
+          errorMessage: this.$t('message.remove.rule.failed'),
           errorMethod: () => {
             this.parentFetchData()
             this.parentToggleLoading()
           },
-          loadingMessage: `Deleting security-group rule...`,
-          catchMessage: 'Error encountered while fetching async job result',
+          loadingMessage: this.$t('message.remove.securitygroup.rule.processing'),
+          catchMessage: this.$t('error.fetching.async.job.result'),
           catchMethod: () => {
             this.parentFetchData()
             this.parentToggleLoading()
           }
         })
       }).catch(error => {
-        this.$notification.error({
-          message: `Error ${error.response.status}`,
-          description: this.tabType === 'ingress' ? error.response.data.revokesecuritygroupingressresponse.errortext
-            : error.response.data.revokesecuritygroupegressresponse.errortext
-        })
+        this.$notifyError(error)
         this.parentToggleLoading()
       })
     },
@@ -320,10 +330,7 @@ export default {
       }).then(response => {
         this.tags = response.listtagsresponse.tag
       }).catch(error => {
-        this.$notification.error({
-          message: `Error ${error.response.status}`,
-          description: error.response.data.errorresponse.errortext
-        })
+        this.$notifyError(error)
       })
     },
     handleDeleteTag (tag) {
@@ -337,22 +344,22 @@ export default {
       }).then(response => {
         this.$pollJob({
           jobId: response.deletetagsresponse.jobid,
-          successMessage: `Successfully deleted tag`,
+          successMessage: this.$t('message.success.delete.tag'),
           successMethod: () => {
             this.parentFetchData()
             this.parentToggleLoading()
             this.fetchTags(this.selectedRule)
             this.tagsLoading = false
           },
-          errorMessage: 'Failed to delete tag',
+          errorMessage: this.$t('message.delete.tag.failed'),
           errorMethod: () => {
             this.parentFetchData()
             this.parentToggleLoading()
             this.fetchTags(this.selectedRule)
             this.tagsLoading = false
           },
-          loadingMessage: `Deleting tag...`,
-          catchMessage: 'Error encountered while fetching async job result',
+          loadingMessage: this.$t('message.delete.tag.processing'),
+          catchMessage: this.$t('error.fetching.async.job.result'),
           catchMethod: () => {
             this.parentFetchData()
             this.parentToggleLoading()
@@ -361,10 +368,7 @@ export default {
           }
         })
       }).catch(error => {
-        this.$notification.error({
-          message: `Error ${error.response.status}`,
-          description: error.response.data.deletetagsresponse.errortext
-        })
+        this.$notifyError(error)
         this.parentToggleLoading()
         this.tagsLoading = false
       })
@@ -388,22 +392,22 @@ export default {
         }).then(response => {
           this.$pollJob({
             jobId: response.createtagsresponse.jobid,
-            successMessage: `Successfully added new tag`,
+            successMessage: this.$t('message.success.add.tag'),
             successMethod: () => {
               this.parentFetchData()
               this.parentToggleLoading()
               this.fetchTags(this.selectedRule)
               this.tagsLoading = false
             },
-            errorMessage: 'Failed to add new tag',
+            errorMessage: this.$t('message.add.tag.failed'),
             errorMethod: () => {
               this.parentFetchData()
               this.parentToggleLoading()
               this.fetchTags(this.selectedRule)
               this.tagsLoading = false
             },
-            loadingMessage: `Adding new tag...`,
-            catchMessage: 'Error encountered while fetching async job result',
+            loadingMessage: this.$t('message.add.tag.processing'),
+            catchMessage: this.$t('error.fetching.async.job.result'),
             catchMethod: () => {
               this.parentFetchData()
               this.parentToggleLoading()
@@ -412,10 +416,7 @@ export default {
             }
           })
         }).catch(error => {
-          this.$notification.error({
-            message: `Error ${error.response.status}`,
-            description: error.response.data.createtagsresponse.errortext
-          })
+          this.$notifyError(error)
           this.parentToggleLoading()
           this.tagsLoading = false
         })

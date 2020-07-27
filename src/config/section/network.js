@@ -19,35 +19,37 @@ import store from '@/store'
 
 export default {
   name: 'network',
-  title: 'Network',
+  title: 'label.network',
   icon: 'wifi',
+  docHelp: 'adminguide/networking_and_traffic.html#advanced-zone-physical-network-configuration',
   children: [
     {
       name: 'guestnetwork',
-      title: 'Guest Networks',
-      icon: 'gateway',
+      title: 'label.guest.networks',
+      icon: 'apartment',
       permission: ['listNetworks'],
       resourceType: 'Network',
       columns: ['name', 'state', 'type', 'cidr', 'ip6cidr', 'broadcasturi', 'account', 'zonename'],
       details: ['name', 'id', 'description', 'type', 'traffictype', 'vpcid', 'vlan', 'broadcasturi', 'cidr', 'ip6cidr', 'netmask', 'gateway', 'ispersistent', 'restartrequired', 'reservediprange', 'redundantrouter', 'networkdomain', 'zonename', 'account', 'domain'],
+      searchFilters: ['keyword', 'zoneid', 'domainid', 'account', 'tags'],
       related: [{
         name: 'vm',
-        title: 'Instances',
+        title: 'label.instances',
         param: 'networkid'
       }],
       tabs: [{
         name: 'details',
         component: () => import('@/components/view/DetailsTab.vue')
       }, {
-        name: 'Egress Rules',
+        name: 'egress.rules',
         component: () => import('@/views/network/EgressRulesTab.vue'),
-        show: (record) => { return record.type === 'Isolated' && 'listEgressFirewallRules' in store.getters.apis }
+        show: (record) => { return record.type === 'Isolated' && !('vpcid' in record) && 'listEgressFirewallRules' in store.getters.apis }
       }, {
-        name: 'Public IP Addresses',
+        name: 'public.ip.addresses',
         component: () => import('@/views/network/IpAddressesTab.vue'),
-        show: (record) => { return record.type === 'Isolated' && 'listPublicIpAddresses' in store.getters.apis }
+        show: (record) => { return record.type === 'Isolated' && !('vpcid' in record) && 'listPublicIpAddresses' in store.getters.apis }
       }, {
-        name: 'Virtual Routers',
+        name: 'virtual.routers',
         component: () => import('@/views/network/RoutersTab.vue'),
         show: (record) => { return (record.type === 'Isolated' || record.type === 'Shared') && 'listRouters' in store.getters.apis }
       }],
@@ -55,7 +57,8 @@ export default {
         {
           api: 'createNetwork',
           icon: 'plus',
-          label: 'Add Network',
+          label: 'label.add.network',
+          docHelp: 'adminguide/networking_and_traffic.html#configure-guest-traffic-in-an-advanced-zone',
           listView: true,
           popup: true,
           component: () => import('@/views/network/CreateNetwork.vue')
@@ -63,21 +66,23 @@ export default {
         {
           api: 'updateNetwork',
           icon: 'edit',
-          label: 'Update Network',
+          label: 'label.edit',
           dataView: true,
           args: ['name', 'displaytext', 'guestvmcidr']
         },
         {
           api: 'restartNetwork',
           icon: 'sync',
-          label: 'Restart Network',
+          label: 'label.restart.network',
           dataView: true,
-          args: ['makeredundant', 'cleanup']
+          args: ['cleanup']
         },
         {
           api: 'replaceNetworkACLList',
           icon: 'swap',
-          label: 'Replace ACL List',
+          label: 'label.replace.acl.list',
+          message: 'message.confirm.replace.acl.new.one',
+          docHelp: 'adminguide/networking_and_traffic.html#configuring-network-access-control-list',
           dataView: true,
           show: (record) => { return record.vpcid },
           args: ['aclid', 'networkid'],
@@ -94,70 +99,77 @@ export default {
         {
           api: 'deleteNetwork',
           icon: 'delete',
-          label: 'Delete Network',
+          label: 'label.action.delete.network',
+          message: 'message.action.delete.network',
           dataView: true
         }
       ]
     },
     {
       name: 'vpc',
-      title: 'VPC',
+      title: 'label.vpc',
       icon: 'deployment-unit',
+      docHelp: 'adminguide/networking_and_traffic.html#configuring-a-virtual-private-cloud',
       permission: ['listVPCs'],
       resourceType: 'Vpc',
       columns: ['name', 'state', 'displaytext', 'cidr', 'account', 'zonename'],
       details: ['name', 'id', 'displaytext', 'cidr', 'networkdomain', 'ispersistent', 'redundantvpcrouter', 'restartrequired', 'zonename', 'account', 'domain'],
+      searchFilters: ['name', 'zoneid', 'domainid', 'account', 'tags'],
       related: [{
         name: 'vm',
-        title: 'Instances',
+        title: 'label.instances',
         param: 'vpcid'
       }, {
         name: 'router',
-        title: 'Virtual Routers',
+        title: 'label.virtual.routers',
         param: 'vpcid'
       }, {
         name: 'ilbvm',
-        title: 'Internal LB VMs',
+        title: 'label.internal.lb',
         param: 'vpcid'
       }],
       tabs: [{
-        name: 'VPC',
+        name: 'vpc',
         component: () => import('@/views/network/VpcTab.vue')
       }],
       actions: [
         {
           api: 'createVPC',
           icon: 'plus',
-          label: 'Add VPC',
+          label: 'label.add.vpc',
+          docHelp: 'adminguide/networking_and_traffic.html#adding-a-virtual-private-cloud',
           listView: true,
           args: ['name', 'displaytext', 'zoneid', 'cidr', 'networkdomain', 'vpcofferingid', 'start']
         },
         {
           api: 'updateVPC',
           icon: 'edit',
-          label: 'Update VPC',
+          label: 'label.edit',
           dataView: true,
           args: ['name', 'displaytext']
         },
         {
           api: 'restartVPC',
           icon: 'sync',
-          label: 'Restart VPC',
+          label: 'label.restart.vpc',
+          message: 'message.restart.vpc',
           dataView: true,
           args: ['makeredundant', 'cleanup']
         },
         {
           api: 'deleteVPC',
           icon: 'delete',
-          label: 'Delete VPC',
+          label: 'label.remove.vpc',
+          message: 'message.remove.vpc',
           dataView: true
         }
       ]
     },
     {
       name: 'securitygroups',
-      title: 'Security Groups',
+      title: 'label.security.groups',
       icon: 'fire',
+      docHelp: 'adminguide/networking_and_traffic.html#security-groups',
       permission: ['listSecurityGroups'],
       resourceType: 'SecurityGroup',
       columns: ['name', 'description', 'account', 'domain'],
@@ -166,24 +178,44 @@ export default {
         name: 'details',
         component: () => import('@/components/view/DetailsTab.vue')
       }, {
-        name: 'Ingress Rule',
+        name: 'ingress.rule',
         component: () => import('@/views/network/IngressEgressRuleConfigure.vue')
       }, {
-        name: 'Egress Rule',
+        name: 'egress.rule',
         component: () => import('@/views/network/IngressEgressRuleConfigure.vue')
       }],
+      show: () => {
+        if (!store.getters.zones || store.getters.zones.length === 0) {
+          return false
+        }
+        const listZoneHaveSGEnabled = store.getters.zones.filter(zone => zone.securitygroupsenabled === true)
+        if (!listZoneHaveSGEnabled || listZoneHaveSGEnabled.length === 0) {
+          return false
+        }
+        return true
+      },
       actions: [
         {
           api: 'createSecurityGroup',
           icon: 'plus',
-          label: 'Add Security Group',
+          label: 'label.add.security.group',
+          docHelp: 'adminguide/networking_and_traffic.html#adding-a-security-group',
           listView: true,
           args: ['name', 'description']
         },
         {
+          api: 'updateSecurityGroup',
+          icon: 'edit',
+          label: 'label.edit',
+          dataView: true,
+          args: ['name'],
+          show: (record) => { return record.name !== 'default' }
+        },
+        {
           api: 'deleteSecurityGroup',
           icon: 'delete',
-          label: 'Delete Security Group',
+          label: 'label.action.delete.security.group',
+          message: 'message.action.delete.security.group',
           dataView: true,
           show: (record) => { return record.name !== 'default' }
         }
@@ -191,8 +223,9 @@ export default {
     },
     {
       name: 'publicip',
-      title: 'Public IP Addresses',
+      title: 'label.public.ip.addresses',
       icon: 'environment',
+      docHelp: 'adminguide/networking_and_traffic.html#reserving-public-ip-addresses-and-vlans-for-accounts',
       permission: ['listPublicIpAddresses'],
       resourceType: 'PublicIpAddress',
       columns: ['ipaddress', 'state', 'associatednetworkname', 'virtualmachinename', 'allocated', 'account', 'zonename'],
@@ -201,33 +234,28 @@ export default {
         name: 'details',
         component: () => import('@/components/view/DetailsTab.vue')
       }, {
-        name: 'Firewall',
+        name: 'firewall',
         component: () => import('@/views/network/FirewallRules.vue'),
         networkServiceFilter: networkService => networkService.filter(x => x.name === 'Firewall').length > 0
       }, {
-        name: 'Port Forwarding',
+        name: 'portforwarding',
         component: () => import('@/views/network/PortForwarding.vue'),
         networkServiceFilter: networkService => networkService.filter(x => x.name === 'PortForwarding').length > 0
       }, {
-        name: 'Load Balancing',
+        name: 'loadbalancing',
         component: () => import('@/views/network/LoadBalancing.vue'),
         networkServiceFilter: networkService => networkService.filter(x => x.name === 'Lb').length > 0
       }, {
-        name: 'VPN',
-        component: () => import('@/views/network/VpnDetails.vue')
+        name: 'vpn',
+        component: () => import('@/views/network/VpnDetails.vue'),
+        show: (record) => { return record.issourcenat }
       }],
       actions: [
         {
-          api: 'associateIpAddress',
-          icon: 'plus',
-          label: 'Acquire New IP',
-          listView: true,
-          args: ['networkid']
-        },
-        {
           api: 'enableStaticNat',
           icon: 'plus-circle',
-          label: 'Enable Static NAT',
+          label: 'label.action.enable.static.nat',
+          docHelp: 'adminguide/networking_and_traffic.html#enabling-or-disabling-static-nat',
           dataView: true,
           show: (record) => { return !record.virtualmachineid && !record.issourcenat },
           popup: true,
@@ -236,7 +264,9 @@ export default {
         {
           api: 'disableStaticNat',
           icon: 'minus-circle',
-          label: 'Disable Static NAT',
+          label: 'label.action.disable.static.nat',
+          message: 'message.action.disable.static.nat',
+          docHelp: 'adminguide/networking_and_traffic.html#enabling-or-disabling-static-nat',
           dataView: true,
           show: (record) => { return record.virtualmachineid },
           args: ['ipaddressid'],
@@ -249,7 +279,9 @@ export default {
         {
           api: 'disassociateIpAddress',
           icon: 'delete',
-          label: 'Release IP',
+          label: 'label.action.release.ip',
+          message: 'message.action.release.ip',
+          docHelp: 'adminguide/networking_and_traffic.html#releasing-an-ip-address-alloted-to-a-vpc',
           dataView: true,
           show: (record) => { return !record.issourcenat }
         }
@@ -257,17 +289,17 @@ export default {
     },
     {
       name: 'privategw',
-      title: 'Private Gateway',
-      icon: 'branches',
+      title: 'label.private.gateway',
+      icon: 'gateway',
       hidden: true,
       permission: ['listPrivateGateways'],
-      columns: ['ipaddress', 'state', 'gateway', 'netmask', 'account', 'domain'],
+      columns: ['ipaddress', 'state', 'gateway', 'netmask', 'account'],
       details: ['ipaddress', 'gateway', 'netmask', 'vlan', 'sourcenatsupported', 'aclid', 'account', 'domain', 'zone'],
       tabs: [{
         name: 'details',
         component: () => import('@/components/view/DetailsTab.vue')
       }, {
-        name: 'Static Routes',
+        name: 'static.routes',
         component: () => import('@/views/network/StaticRoutesTab.vue'),
         show: () => true
       }],
@@ -275,9 +307,16 @@ export default {
         {
           api: 'createPrivateGateway',
           icon: 'plus',
-          label: 'Add Private Gateway',
+          label: 'label.add.private.gateway',
+          docHelp: 'adminguide/networking_and_traffic.html#adding-a-private-gateway-to-a-vpc',
           listView: true,
-          args: ['physicalnetworkid', 'vlan', 'ipaddress', 'gateway', 'netmask', 'sourcenatsupported', 'aclid'],
+          args: (record, store) => {
+            var fields = ['vpcid', 'physicalnetworkid', 'vlan', 'ipaddress', 'gateway', 'netmask', 'sourcenatsupported', 'aclid']
+            if (store.apis.createPrivateGateway.params.filter(x => x.name === 'bypassvlanoverlapcheck').length > 0) {
+              fields.push('bypassvlanoverlapcheck')
+            }
+            return fields
+          },
           mapping: {
             aclid: {
               api: 'listNetworkACLLists'
@@ -287,7 +326,9 @@ export default {
         {
           api: 'replaceNetworkACLList',
           icon: 'swap',
-          label: 'Replace ACL List',
+          label: 'label.replace.acl.list',
+          message: 'message.confirm.replace.acl.new.one',
+          docHelp: 'adminguide/networking_and_traffic.html#acl-on-private-gateway',
           dataView: true,
           args: ['aclid', 'gatewayid'],
           mapping: {
@@ -303,14 +344,15 @@ export default {
         {
           api: 'deletePrivateGateway',
           icon: 'delete',
-          label: 'Delete Private Gateway',
+          label: 'label.delete.gateway',
+          message: 'message.delete.gateway',
           dataView: true
         }
       ]
     },
     {
       name: 's2svpn',
-      title: 'Site-to-Site VPNs',
+      title: 'label.site.to.site.vpn',
       icon: 'lock',
       hidden: true,
       permission: ['listVpnGateways'],
@@ -320,21 +362,25 @@ export default {
         {
           api: 'createVpnGateway',
           icon: 'plus',
-          label: 'Create VPN Gateway',
+          label: 'label.add.vpn.gateway',
+          docHelp: 'adminguide/networking_and_traffic.html#creating-a-vpn-gateway-for-the-vpc',
           listView: true,
           args: ['vpcid']
         },
         {
           api: 'deleteVpnGateway',
           icon: 'delete',
-          label: 'Delete VPN Gateway',
+          label: 'label.delete.vpn.gateway',
+          message: 'message.delete.vpn.gateway',
+          docHelp: 'adminguide/networking_and_traffic.html#restarting-and-removing-a-vpn-connection',
           dataView: true
         }
       ]
     },
     {
       name: 's2svpnconn',
-      title: 'Site-to-Site VPN Connections',
+      title: 'label.site.to.site.vpn.connections',
+      docHelp: 'adminguide/networking_and_traffic.html#setting-up-a-site-to-site-vpn-connection',
       icon: 'sync',
       hidden: true,
       permission: ['listVpnConnections'],
@@ -344,7 +390,8 @@ export default {
         {
           api: 'createVpnConnection',
           icon: 'plus',
-          label: 'Create VPN Connection',
+          label: 'label.create.vpn.connection',
+          docHelp: 'adminguide/networking_and_traffic.html#creating-a-vpn-connection',
           listView: true,
           args: ['s2scustomergatewayid', 's2svpngatewayid', 'passive'],
           mapping: {
@@ -359,21 +406,26 @@ export default {
         {
           api: 'resetVpnConnection',
           icon: 'reload',
-          label: 'Reset VPN Connection',
+          label: 'label.reset.vpn.connection',
+          message: 'message.reset.vpn.connection',
+          docHelp: 'adminguide/networking_and_traffic.html#restarting-and-removing-a-vpn-connection',
           dataView: true
         },
         {
           api: 'deleteVpnConnection',
           icon: 'delete',
-          label: 'Delete VPN Connection',
+          label: 'label.delete.vpn.connection',
+          message: 'message.delete.vpn.connection',
+          docHelp: 'adminguide/networking_and_traffic.html#restarting-and-removing-a-vpn-connection',
           dataView: true
         }
       ]
     },
     {
       name: 'acllist',
-      title: 'Network ACL Lists',
+      title: 'label.network.acl.lists',
       icon: 'bars',
+      docHelp: 'adminguide/networking_and_traffic.html#configuring-network-access-control-list',
       hidden: true,
       permission: ['listNetworkACLLists'],
       columns: ['name', 'description', 'id'],
@@ -382,7 +434,7 @@ export default {
         name: 'details',
         component: () => import('@/components/view/DetailsTab.vue')
       }, {
-        name: 'ACL List Rules',
+        name: 'acl.list.rules',
         component: () => import('@/views/network/AclListRulesTab.vue'),
         show: () => true
       }],
@@ -390,28 +442,31 @@ export default {
         {
           api: 'createNetworkACLList',
           icon: 'plus',
-          label: 'Add ACL List',
+          label: 'label.add.acl.list',
+          docHelp: 'adminguide/networking_and_traffic.html#creating-acl-lists',
           listView: true,
           args: ['name', 'description', 'vpcid']
         },
         {
           api: 'updateNetworkACLList',
           icon: 'edit',
-          label: 'Edit ACL List',
+          label: 'label.edit.acl.list',
           dataView: true,
           args: ['name', 'description']
         },
         {
           api: 'deleteNetworkACLList',
           icon: 'delete',
-          label: 'Delete ACL List',
+          label: 'label.delete.acl.list',
+          message: 'message.confirm.delete.acl.list',
           dataView: true
         }
       ]
     },
     {
       name: 'ilb',
-      title: 'Internal LB',
+      title: 'label.internal.lb',
+      docHelp: 'adminguide/networking_and_traffic.html#load-balancing-across-tiers',
       icon: 'share-alt',
       hidden: true,
       permission: ['listLoadBalancers'],
@@ -421,7 +476,7 @@ export default {
         name: 'details',
         component: () => import('@/components/view/DetailsTab.vue')
       }, {
-        name: 'Assigned VMs',
+        name: 'loadbalancerinstance',
         component: () => import('@/views/network/InternalLBAssignedVmTab.vue'),
         show: () => true
       }],
@@ -429,7 +484,8 @@ export default {
         {
           api: 'createLoadBalancer',
           icon: 'plus',
-          label: 'Add Internal LB',
+          label: 'label.add.internal.lb',
+          docHelp: 'adminguide/networking_and_traffic.html#creating-an-internal-lb-rule',
           listView: true,
           args: ['name', 'description', 'sourceipaddress', 'sourceport', 'instanceport', 'algorithm', 'networkid', 'sourceipaddressnetworkid', 'scheme'],
           mapping: {
@@ -452,7 +508,7 @@ export default {
         {
           api: 'assignToLoadBalancerRule',
           icon: 'plus',
-          label: 'Assign VMs',
+          label: 'label.assign.vms',
           dataView: true,
           popup: true,
           component: () => import('@/views/network/InternalLBAssignVmForm.vue')
@@ -460,30 +516,33 @@ export default {
         {
           api: 'deleteLoadBalancer',
           icon: 'delete',
-          label: 'Delete LB',
+          label: 'label.delete.internal.lb',
+          message: 'message.confirm.delete.internal.lb',
           dataView: true
         }
       ]
     },
     {
       name: 'vpnuser',
-      title: 'VPN Users',
+      title: 'label.vpn.users',
       icon: 'user',
       permission: ['listVpnUsers'],
+      hidden: true,
       columns: ['username', 'state', 'account', 'domain'],
       details: ['username', 'state', 'account', 'domain'],
       actions: [
         {
           api: 'addVpnUser',
           icon: 'plus',
-          label: 'Add VPN User',
+          label: 'label.add.vpn.user',
           listView: true,
           args: ['username', 'password', 'domainid', 'account']
         },
         {
           api: 'removeVpnUser',
           icon: 'delete',
-          label: 'Delete VPN User',
+          label: 'label.delete.vpn.user',
+          message: 'message.action.delete.vpn.user',
           dataView: true,
           args: ['username', 'domainid', 'account'],
           mapping: {
@@ -502,16 +561,18 @@ export default {
     },
     {
       name: 'vpncustomergateway',
-      title: 'VPN Customer Gateway',
+      title: 'label.vpncustomergatewayid',
       icon: 'lock',
       permission: ['listVpnCustomerGateways'],
-      columns: ['name', 'gateway', 'cidrlist', 'ipsecpsk', 'account', 'domain'],
+      columns: ['name', 'gateway', 'cidrlist', 'ipsecpsk', 'account'],
       details: ['name', 'id', 'gateway', 'cidrlist', 'ipsecpsk', 'ikepolicy', 'ikelifetime', 'esppolicy', 'esplifetime', 'dpd', 'forceencap', 'account', 'domain'],
+      searchFilters: ['keyword', 'domainid', 'account'],
       actions: [
         {
           api: 'createVpnCustomerGateway',
           icon: 'plus',
-          label: 'Add VPN Customer Gateway',
+          label: 'label.add.vpn.customer.gateway',
+          docHelp: 'adminguide/networking_and_traffic.html#creating-and-updating-a-vpn-customer-gateway',
           listView: true,
           popup: true,
           component: () => import('@/views/network/CreateVpnCustomerGateway.vue')
@@ -519,14 +580,17 @@ export default {
         {
           api: 'updateVpnCustomerGateway',
           icon: 'edit',
-          label: 'Edit VPN Customer Gateway',
+          label: 'label.edit',
+          docHelp: 'adminguide/networking_and_traffic.html#updating-and-removing-a-vpn-customer-gateway',
           dataView: true,
           args: ['name', 'gateway', 'cidrlist', 'ipsecpsk', 'ikepolicy', 'ikelifetime', 'esppolicy', 'esplifetime', 'dpd', 'forceencap']
         },
         {
           api: 'deleteVpnCustomerGateway',
           icon: 'delete',
-          label: 'Delete VPN Customer Gateway',
+          label: 'label.delete.vpn.customer.gateway',
+          message: 'message.delete.vpn.customer.gateway',
+          docHelp: 'adminguide/networking_and_traffic.html#updating-and-removing-a-vpn-customer-gateway',
           dataView: true
         }
       ]

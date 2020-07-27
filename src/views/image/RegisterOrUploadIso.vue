@@ -19,7 +19,7 @@
   <div class="form-layout">
     <span v-if="uploadPercentage > 0">
       <a-icon type="loading" />
-      Do not close this form, file upload is in progress...
+      {{ $t('message.upload.file.processing') }}
       <a-progress :percent="uploadPercentage" />
     </span>
     <a-spin :spinning="loading" v-else>
@@ -27,58 +27,58 @@
         :form="form"
         @submit="handleSubmit"
         layout="vertical">
-        <a-form-item v-if="currentForm === 'Create'" :label="$t('url')">
+        <a-form-item v-if="currentForm === 'Create'" :label="$t('label.url')">
           <a-input
             v-decorator="['url', {
-              rules: [{ required: true, message: 'Please upload an ISO' }]
+              rules: [{ required: true, message: `${this.$t('label.upload.iso.from.local')}` }]
             }]"
-            :placeholder="$t('iso.url.description')" />
+            :placeholder="apiParams.url.description" />
         </a-form-item>
-        <a-form-item v-if="currentForm === 'Upload'" :label="$t('templateFileUpload')">
+        <a-form-item v-if="currentForm === 'Upload'" :label="$t('label.templatefileupload')">
           <a-upload-dragger
             :multiple="false"
             :fileList="fileList"
             :remove="handleRemove"
             :beforeUpload="beforeUpload"
             v-decorator="['file', {
-              rules: [{ required: true, message: 'Please enter input' }]
+              rules: [{ required: true, message: `${this.$t('message.error.required.input')}` }]
             }]">
             <p class="ant-upload-drag-icon">
               <a-icon type="cloud-upload" />
             </p>
             <p class="ant-upload-text" v-if="fileList.length === 0">
-              Click or drag file to this area to upload
+              {{ $t('label.volume.volumefileupload.description') }}
             </p>
           </a-upload-dragger>
         </a-form-item>
-        <a-form-item :label="$t('name')">
+        <a-form-item :label="$t('label.name')">
           <a-input
             v-decorator="['name', {
-              rules: [{ required: true, message: 'Please enter input' }]
+              rules: [{ required: true, message: `${this.$t('message.error.required.input')}` }]
             }]"
-            :placeholder="$t('iso.name.description')" />
+            :placeholder="apiParams.name.description" />
         </a-form-item>
 
-        <a-form-item :label="$t('displaytext')">
+        <a-form-item :label="$t('label.displaytext')">
           <a-input
             v-decorator="['displaytext', {
-              rules: [{ required: true, message: 'Please enter input' }]
+              rules: [{ required: true, message: `${this.$t('message.error.required.input')}` }]
             }]"
-            :placeholder="$t('iso.displaytext.description')" />
+            :placeholder="apiParams.displaytext.description" />
         </a-form-item>
 
-        <a-form-item v-if="allowed && currentForm !== 'Upload'" :label="$t('directdownload')">
+        <a-form-item v-if="allowed && currentForm !== 'Upload'" :label="$t('label.directdownload')">
           <a-switch v-decorator="['directdownload']"/>
         </a-form-item>
 
-        <a-form-item :label="$t('zoneid')">
+        <a-form-item :label="$t('label.zoneid')">
           <a-select
             v-decorator="['zoneid', {
               initialValue: this.selectedZone,
               rules: [
                 {
                   required: true,
-                  message: 'Please select option'
+                  message: `${this.$t('message.error.select')}`
                 }
               ]
             }]"
@@ -88,7 +88,7 @@
               return option.componentOptions.children[0].text.toLowerCase().indexOf(input.toLowerCase()) >= 0
             }"
             :loading="zoneLoading"
-            :placeholder="$t('iso.zoneid.description')">
+            :placeholder="apiParams.zoneid.description">
             <a-select-option :value="opt.id" v-for="opt in zones" :key="opt.id">
               <div v-if="currentForm === 'Upload'">
                 <div v-if="opt.name !== $t('label.all.zone')">
@@ -102,7 +102,7 @@
           </a-select>
         </a-form-item>
 
-        <a-form-item :label="$t('bootable')">
+        <a-form-item :label="$t('label.bootable')">
           <a-switch
             v-decorator="['bootable', {
               initialValue: true,
@@ -111,11 +111,11 @@
             @change="val => bootable = val"/>
         </a-form-item>
 
-        <a-form-item v-if="bootable" :label="$t('ostypeid')">
+        <a-form-item v-if="bootable" :label="$t('label.ostypeid')">
           <a-select
             v-decorator="['ostypeid', {
               initialValue: defaultOsType,
-              rules: [{ required: true, message: 'Please select option' }]
+              rules: [{ required: true, message: `${this.$t('message.error.select')}` }]
             }]"
             showSearch
             optionFilterProp="children"
@@ -123,28 +123,28 @@
               return option.componentOptions.children[0].text.toLowerCase().indexOf(input.toLowerCase()) >= 0
             }"
             :loading="osTypeLoading"
-            :placeholder="$t('iso.ostypeid.description')">
+            :placeholder="apiParams.ostypeid.description">
             <a-select-option :value="opt.description" v-for="(opt, optIndex) in osTypes" :key="optIndex">
               {{ opt.name || opt.description }}
             </a-select-option>
           </a-select>
         </a-form-item>
 
-        <a-form-item :label="$t('isextractable')">
+        <a-form-item :label="$t('label.isextractable')">
           <a-switch
             v-decorator="['isextractable', {
               initialValue: false
             }]" />
         </a-form-item>
 
-        <a-form-item :label="$t('ispublic')">
+        <a-form-item :label="$t('label.ispublic')">
           <a-switch
             v-decorator="['ispublic', {
               initialValue: false
             }]" />
         </a-form-item>
 
-        <a-form-item :label="$t('isfeatured')">
+        <a-form-item :label="$t('label.isfeatured')">
           <a-switch
             v-decorator="['isfeatured', {
               initialValue: false
@@ -152,8 +152,8 @@
         </a-form-item>
 
         <div :span="24" class="action-button">
-          <a-button @click="closeAction">{{ this.$t('Cancel') }}</a-button>
-          <a-button :loading="loading" type="primary" @click="handleSubmit">{{ this.$t('OK') }}</a-button>
+          <a-button @click="closeAction">{{ this.$t('label.cancel') }}</a-button>
+          <a-button :loading="loading" type="primary" @click="handleSubmit">{{ this.$t('label.ok') }}</a-button>
         </div>
       </a-form>
     </a-spin>
@@ -191,19 +191,27 @@ export default {
       selectedZone: '',
       uploadParams: null,
       uploadPercentage: 0,
-      currentForm: this.action.currentAction.api === 'registerIso' ? 'Create' : 'Upload'
+      currentForm: this.action.currentAction.icon === 'plus' ? 'Create' : 'Upload'
     }
   },
   beforeCreate () {
     this.form = this.$form.createForm(this)
+    this.apiConfig = this.$store.getters.apis.registerIso || {}
+    this.apiParams = {}
+    this.apiConfig.params.forEach(param => {
+      this.apiParams[param.name] = param
+    })
   },
   created () {
-    this.zones = [
-      {
-        id: '-1',
-        name: this.$t('label.all.zone')
-      }
-    ]
+    this.zones = []
+    if (this.$store.getters.userInfo.roletype === 'Admin') {
+      this.zones = [
+        {
+          id: '-1',
+          name: this.$t('label.all.zone')
+        }
+      ]
+    }
   },
   mounted () {
     this.fetchData()
@@ -257,8 +265,8 @@ export default {
       const { fileList } = this
       if (this.fileList.length > 1) {
         this.$notification.error({
-          message: 'ISO Upload Failed',
-          description: 'Only one ISO can be uploaded at a time',
+          message: this.$t('message.upload.iso.failed'),
+          description: this.$t('message.error.upload.iso.description'),
           duration: 0
         })
       }
@@ -282,14 +290,14 @@ export default {
           timeout: 86400000
         }).then((json) => {
         this.$notification.success({
-          message: 'Upload Successful',
-          description: 'This ISO file has been uploaded. Please check its status at Templates menu'
+          message: this.$t('message.success.upload'),
+          description: this.$t('message.success.upload.description')
         })
         this.closeAction()
       }).catch(e => {
         this.$notification.error({
-          message: 'Upload Failed',
-          description: `Failed to upload ISO -  ${e}`,
+          message: this.$t('message.upload.failed'),
+          description: `${this.$t('message.upload.iso.failed.description')} -  ${e}`,
           duration: 0
         })
         this.closeAction()
@@ -330,15 +338,11 @@ export default {
           api('registerIso', params).then(json => {
             this.$emit('refresh-data')
             this.$notification.success({
-              message: 'Register ISO',
-              description: 'Sucessfully registered ISO ' + params.name
+              message: 'label.action.register.iso',
+              description: `${this.$t('message.success.register.iso')} ${params.name}`
             })
           }).catch(error => {
-            this.$notification.error({
-              message: 'Request Failed',
-              description: (error.response && error.response.headers && error.response.headers['x-description']) || error.message,
-              duration: 0
-            })
+            this.$notifyError(error)
           }).finally(() => {
             this.loading = false
             this.closeAction()
@@ -354,16 +358,12 @@ export default {
             const response = this.handleUpload()
             if (response === 'upload successful') {
               this.$notification.success({
-                message: 'Upload Successful',
-                description: 'This ISO file has been uploaded. Please check its status in the Images > ISOs menu'
+                message: this.$t('message.success.upload'),
+                description: this.$t('message.success.upload.iso.description')
               })
             }
           }).catch(error => {
-            this.$notification.error({
-              message: 'Request Failed',
-              description: (error.response && error.response.headers && error.response.headers['x-description']) || error.message,
-              duration: 0
-            })
+            this.$notifyError(error)
           }).finally(() => {
             this.loading = false
           })

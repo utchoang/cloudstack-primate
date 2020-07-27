@@ -19,7 +19,7 @@
   <a-spin :spinning="componentLoading">
     <div class="new-route">
       <a-input v-model="newRoute" icon="plus" :placeholder="$t('label.cidr.destination.network')"></a-input>
-      <a-button type="primary" @click="handleAdd">{{ $t('label.add.route') }}</a-button>
+      <a-button type="primary" :disabled="!('createStaticRoute' in $store.getters.apis)" @click="handleAdd">{{ $t('label.add.route') }}</a-button>
     </div>
 
     <div class="list">
@@ -29,8 +29,8 @@
           <div>{{ route.cidr }}</div>
         </div>
         <div class="actions">
-          <a-button shape="round" icon="tag" @click="() => openTagsModal(route)"></a-button>
-          <a-button shape="round" icon="delete" type="danger" @click="() => handleDelete(route)"></a-button>
+          <a-button shape="circle" icon="tag" @click="() => openTagsModal(route)"></a-button>
+          <a-button :disabled="!('deleteStaticRoute' in $store.getters.apis)" shape="circle" icon="delete" type="danger" @click="() => handleDelete(route)"></a-button>
         </div>
       </div>
     </div>
@@ -41,31 +41,31 @@
       <div v-else>
         <a-form :form="newTagsForm" class="add-tags" @submit="handleAddTag">
           <div class="add-tags__input">
-            <p class="add-tags__label">{{ $t('key') }}</p>
+            <p class="add-tags__label">{{ $t('label.key') }}</p>
             <a-form-item>
-              <a-input v-decorator="['key', { rules: [{ required: true, message: 'Please specify a tag key'}] }]" />
+              <a-input v-decorator="['key', { rules: [{ required: true, message: this.$t('message.specifiy.tag.key')}] }]" />
             </a-form-item>
           </div>
           <div class="add-tags__input">
-            <p class="add-tags__label">{{ $t('value') }}</p>
+            <p class="add-tags__label">{{ $t('label.value') }}</p>
             <a-form-item>
-              <a-input v-decorator="['value', { rules: [{ required: true, message: 'Please specify a tag value'}] }]" />
+              <a-input v-decorator="['value', { rules: [{ required: true, message: this.$t('message.specifiy.tag.value')}] }]" />
             </a-form-item>
           </div>
-          <a-button type="primary" html-type="submit">{{ $t('label.add') }}</a-button>
+          <a-button type="primary" :disabled="!('createTags' in $store.getters.apis)" html-type="submit">{{ $t('label.add') }}</a-button>
         </a-form>
 
         <a-divider style="margin-top: 0;"></a-divider>
 
         <div class="tags-container">
           <div class="tags" v-for="(tag, index) in tags" :key="index">
-            <a-tag :key="index" :closable="true" :afterClose="() => handleDeleteTag(tag)">
+            <a-tag :key="index" :closable="'deleteTags' in $store.getters.apis" :afterClose="() => handleDeleteTag(tag)">
               {{ tag.key }} = {{ tag.value }}
             </a-tag>
           </div>
         </div>
 
-        <a-button class="add-tags-done" @click="tagsModalVisible = false" type="primary">{{ $t('OK') }}</a-button>
+        <a-button class="add-tags-done" @click="tagsModalVisible = false" type="primary">{{ $t('label.ok') }}</a-button>
       </div>
 
     </a-modal>
@@ -115,10 +115,7 @@ export default {
       api('listStaticRoutes', { gatewayid: this.resource.id }).then(json => {
         this.routes = json.liststaticroutesresponse.staticroute
       }).catch(error => {
-        this.$notification.error({
-          message: 'Request Failed',
-          description: error.response.headers['x-description']
-        })
+        this.$notifyError(error)
       }).finally(() => {
         this.componentLoading = false
       })
@@ -136,30 +133,27 @@ export default {
           successMethod: () => {
             this.fetchData()
             this.$store.dispatch('AddAsyncJob', {
-              title: 'Successfully added static route',
+              title: this.$t('message.success.add.static.route'),
               jobid: response.createstaticrouteresponse.jobid,
               status: 'progress'
             })
             this.componentLoading = false
             this.newRoute = null
           },
-          errorMessage: 'Failed to add static route',
+          errorMessage: this.$t('message.add.static.route.failed'),
           errorMethod: () => {
             this.fetchData()
             this.componentLoading = false
           },
-          loadingMessage: `Adding static route...`,
-          catchMessage: 'Error encountered while fetching async job result',
+          loadingMessage: this.$t('message.add.static.route.processing'),
+          catchMessage: this.$t('error.fetching.async.job.result'),
           catchMethod: () => {
             this.fetchData()
             this.componentLoading = false
           }
         })
       }).catch(error => {
-        this.$notification.error({
-          message: `Error ${error.response.status}`,
-          description: error.response.headers['x-description']
-        })
+        this.$notifyError(error)
         this.fetchData()
         this.componentLoading = false
       })
@@ -174,29 +168,26 @@ export default {
           successMethod: () => {
             this.fetchData()
             this.$store.dispatch('AddAsyncJob', {
-              title: 'Successfully deleted static route',
+              title: this.$t('message.success.delete.static.route'),
               jobid: response.deletestaticrouteresponse.jobid,
               status: 'progress'
             })
             this.componentLoading = false
           },
-          errorMessage: 'Failed to delete static route',
+          errorMessage: this.$t('message.delete.static.route.failed'),
           errorMethod: () => {
             this.fetchData()
             this.componentLoading = false
           },
-          loadingMessage: `Deleting static route...`,
-          catchMessage: 'Error encountered while fetching async job result',
+          loadingMessage: this.$t('message.delete.static.route.processing'),
+          catchMessage: this.$t('error.fetching.async.job.result'),
           catchMethod: () => {
             this.fetchData()
             this.componentLoading = false
           }
         })
       }).catch(error => {
-        this.$notification.error({
-          message: `Error ${error.response.status}`,
-          description: error.response.headers['x-description']
-        })
+        this.$notifyError(error)
         this.fetchData()
         this.componentLoading = false
       })
@@ -209,10 +200,7 @@ export default {
       }).then(response => {
         this.tags = response.listtagsresponse.tag
       }).catch(error => {
-        this.$notification.error({
-          message: `Error ${error.response.status}`,
-          description: error.response.data.errorresponse.errortext
-        })
+        this.$notifyError(error)
       })
     },
     handleDeleteTag (tag) {
@@ -225,28 +213,25 @@ export default {
       }).then(response => {
         this.$pollJob({
           jobId: response.deletetagsresponse.jobid,
-          successMessage: `Successfully deleted tag`,
+          successMessage: this.$t('message.success.delete.tag'),
           successMethod: () => {
             this.fetchTags(this.selectedRule)
             this.tagsLoading = false
           },
-          errorMessage: 'Failed to delete tag',
+          errorMessage: this.$t('message.delete.tag.failed'),
           errorMethod: () => {
             this.fetchTags(this.selectedRule)
             this.tagsLoading = false
           },
-          loadingMessage: `Deleting tag...`,
-          catchMessage: 'Error encountered while fetching async job result',
+          loadingMessage: this.$t('message.delete.tag.processing'),
+          catchMessage: this.$t('error.fetching.async.job.result'),
           catchMethod: () => {
             this.fetchTags(this.selectedRule)
             this.tagsLoading = false
           }
         })
       }).catch(error => {
-        this.$notification.error({
-          message: `Error ${error.response.status}`,
-          description: error.response.data.deletetagsresponse.errortext
-        })
+        this.$notifyError(error)
         this.tagsLoading = false
       })
     },
@@ -268,28 +253,25 @@ export default {
         }).then(response => {
           this.$pollJob({
             jobId: response.createtagsresponse.jobid,
-            successMessage: `Successfully added new tag`,
+            successMessage: this.$t('message.success.add.tag'),
             successMethod: () => {
               this.fetchTags(this.selectedRule)
               this.tagsLoading = false
             },
-            errorMessage: 'Failed to add new tag',
+            errorMessage: this.$t('message.add.tag.failed'),
             errorMethod: () => {
               this.fetchTags(this.selectedRule)
               this.tagsLoading = false
             },
-            loadingMessage: `Adding new tag...`,
-            catchMessage: 'Error encountered while fetching async job result',
+            loadingMessage: this.$t('message.add.tag.processing'),
+            catchMessage: this.$t('error.fetching.async.job.result'),
             catchMethod: () => {
               this.fetchTags(this.selectedRule)
               this.tagsLoading = false
             }
           })
         }).catch(error => {
-          this.$notification.error({
-            message: `Error ${error.response.status}`,
-            description: error.response.data.createtagsresponse.errortext
-          })
+          this.$notifyError(error)
           this.tagsLoading = false
         })
       })

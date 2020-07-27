@@ -17,8 +17,9 @@
 
 export default {
   name: 'imagestore',
-  title: 'Secondary Storages',
+  title: 'label.secondary.storage',
   icon: 'picture',
+  docHelp: 'adminguide/storage.html#secondary-storage',
   permission: ['listImageStores'],
   columns: ['name', 'url', 'protocol', 'scope', 'zonename'],
   details: ['name', 'id', 'url', 'protocol', 'provider', 'scope', 'zonename'],
@@ -26,13 +27,14 @@ export default {
     name: 'details',
     component: () => import('@/components/view/DetailsTab.vue')
   }, {
-    name: 'Settings',
+    name: 'settings',
     component: () => import('@/components/view/SettingsTab.vue')
   }],
   actions: [
     {
       api: 'addImageStore',
       icon: 'plus',
+      docHelp: 'installguide/configuration.html#add-secondary-storage',
       label: 'label.add.secondary.storage',
       listView: true,
       popup: true,
@@ -42,6 +44,7 @@ export default {
       api: 'deleteImageStore',
       icon: 'delete',
       label: 'label.action.delete.secondary.storage',
+      message: 'message.action.delete.secondary.storage',
       dataView: true
     }
   ]

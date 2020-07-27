@@ -16,74 +16,109 @@
 // under the License.
 
 <template>
-  <a-spin :spinning="fetchLoading">
-    <a-button type="dashed" icon="plus" style="width: 100%; margin-bottom: 15px" @click="acquireIpAddress">
-      {{ $t("label.acquire.new.ip") }}
-    </a-button>
-    <div v-if="$route.path.startsWith('/vpc')">
-      Select Tier:
-      <a-select
-        style="width: 40%; margin-left: 15px;margin-bottom: 15px"
-        :loading="fetchLoading"
-        defaultActiveFirstOption
-        :value="vpcTier"
-        @change="handleTierSelect"
-      >
-        <a-select-option key="all" value="">
-          {{ $t('Show All') }}
-        </a-select-option>
-        <a-select-option v-for="network in networksList" :key="network.id" :value="network.id">
-          {{ network.name }}
-        </a-select-option>
-      </a-select>
-    </div>
-    <a-table
-      size="small"
-      style="overflow-y: auto"
-      :columns="columns"
-      :dataSource="ips"
-      :rowKey="item => item.id"
-      :pagination="false" >
-      <template slot="ipaddress" slot-scope="text, record">
-        <router-link :to="{ path: '/publicip/' + record.id }" >{{ text }} </router-link>
-        <a-tag v-if="record.issourcenat === true">source-nat</a-tag>
-      </template>
+  <div>
+    <a-spin :spinning="fetchLoading">
+      <a-button
+        :disabled="!('associateIpAddress' in $store.getters.apis)"
+        type="dashed"
+        icon="plus"
+        style="width: 100%; margin-bottom: 15px"
+        @click="onShowAcquireIp">
+        {{ $t('label.acquire.new.ip') }}
+      </a-button>
+      <div v-if="$route.path.startsWith('/vpc')">
+        Select Tier:
+        <a-select
+          style="width: 40%; margin-left: 15px;margin-bottom: 15px"
+          :loading="fetchLoading"
+          defaultActiveFirstOption
+          :value="vpcTier"
+          @change="handleTierSelect"
+        >
+          <a-select-option key="all" value="">
+            {{ $t('label.view.all') }}
+          </a-select-option>
+          <a-select-option v-for="network in networksList" :key="network.id" :value="network.id">
+            {{ network.name }}
+          </a-select-option>
+        </a-select>
+      </div>
+      <a-table
+        size="small"
+        style="overflow-y: auto"
+        :columns="columns"
+        :dataSource="ips"
+        :rowKey="item => item.id"
+        :pagination="false" >
+        <template slot="ipaddress" slot-scope="text, record">
+          <router-link :to="{ path: '/publicip/' + record.id }" >{{ text }} </router-link>
+          <a-tag v-if="record.issourcenat === true">source-nat</a-tag>
+        </template>
 
-      <template slot="state" slot-scope="text, record">
-        <status :text="record.state" displayText />
-      </template>
+        <template slot="state" slot-scope="text, record">
+          <status :text="record.state" displayText />
+        </template>
 
-      <template slot="virtualmachineid" slot-scope="text, record">
-        <a-icon type="desktop" v-if="record.virtualmachineid" />
-        <router-link :to="{ path: '/vm/' + record.virtualmachineid }" > {{ record.virtualmachinename || record.virtualmachineid }} </router-link>
-      </template>
+        <template slot="virtualmachineid" slot-scope="text, record">
+          <a-icon type="desktop" v-if="record.virtualmachineid" />
+          <router-link :to="{ path: '/vm/' + record.virtualmachineid }" > {{ record.virtualmachinename || record.virtualmachineid }} </router-link>
+        </template>
 
-      <template slot="associatednetworkname" slot-scope="text, record">
-        <router-link :to="{ path: '/guestnetwork/' + record.associatednetworkid }" > {{ record.associatednetworkname || record.associatednetworkid }} </router-link>
-      </template>
+        <template slot="associatednetworkname" slot-scope="text, record">
+          <router-link :to="{ path: '/guestnetwork/' + record.associatednetworkid }" > {{ record.associatednetworkname || record.associatednetworkid }} </router-link>
+        </template>
 
-      <template slot="action" slot-scope="text, record">
-        <a-button
-          v-if="record.issourcenat !== true"
-          type="danger"
-          icon="delete"
-          shape="circle"
-          @click="releaseIpAddress(record)" />
-      </template>
-    </a-table>
-    <a-divider/>
-    <a-pagination
-      class="row-element pagination"
-      size="small"
-      :current="page"
-      :pageSize="pageSize"
-      :total="totalIps"
-      :showTotal="total => `Total ${total} items`"
-      :pageSizeOptions="['10', '20', '40', '80', '100']"
-      @change="changePage"
-      @showSizeChange="changePageSize"
-      showSizeChanger/>
-  </a-spin>
+        <template slot="action" slot-scope="text, record">
+          <a-button
+            v-if="record.issourcenat !== true"
+            type="danger"
+            icon="delete"
+            shape="circle"
+            :disabled="!('disassociateIpAddress' in $store.getters.apis)"
+            @click="releaseIpAddress(record)" />
+        </template>
+      </a-table>
+      <a-divider/>
+      <a-pagination
+        class="row-element pagination"
+        size="small"
+        :current="page"
+        :pageSize="pageSize"
+        :total="totalIps"
+        :showTotal="total => `${$t('label.total')} ${total} ${$t('label.items')}`"
+        :pageSizeOptions="['10', '20', '40', '80', '100']"
+        @change="changePage"
+        @showSizeChange="changePageSize"
+        showSizeChanger>
+        <template slot="buildOptionText" slot-scope="props">
+          <span>{{ props.value }} / {{ $t('label.page') }}</span>
+        </template>
+      </a-pagination>
+    </a-spin>
+    <a-modal
+      v-if="showAcquireIp"
+      :visible="showAcquireIp"
+      :title="$t('label.acquire.new.ip')"
+      :closable="true"
+      @cancel="onCloseModal"
+      @ok="acquireIpAddress"
+      centered
+      width="450px">
+      <a-spin :spinning="acquireLoading">
+        <a-alert :message="$t('message.action.acquire.ip')" type="warning" />
+        <a-form-item :label="$t('label.ipaddress')">
+          <a-select
+            style="width: 100%;"
+            showSearch
+            v-model="acquireIp">
+            <a-select-option
+              v-for="ip in listPublicIpAddress"
+              :key="ip.ipaddress">{{ ip.ipaddress }}</a-select-option>
+          </a-select>
+        </a-form-item>
+      </a-spin>
+    </a-modal>
+  </div>
 </template>
 <script>
 import { api } from '@/api'
@@ -118,22 +153,22 @@ export default {
       tiersSelect: false,
       columns: [
         {
-          title: this.$t('ipaddress'),
+          title: this.$t('label.ipaddress'),
           dataIndex: 'ipaddress',
           scopedSlots: { customRender: 'ipaddress' }
         },
         {
-          title: this.$t('state'),
+          title: this.$t('label.state'),
           dataIndex: 'state',
           scopedSlots: { customRender: 'state' }
         },
         {
-          title: this.$t('vm'),
+          title: this.$t('label.vm'),
           dataIndex: 'virtualmachineid',
           scopedSlots: { customRender: 'virtualmachineid' }
         },
         {
-          title: this.$t('Network'),
+          title: this.$t('label.network'),
           dataIndex: 'associatednetworkname',
           scopedSlots: { customRender: 'associatednetworkname' }
         },
@@ -141,7 +176,11 @@ export default {
           title: '',
           scopedSlots: { customRender: 'action' }
         }
-      ]
+      ],
+      showAcquireIp: false,
+      acquireLoading: false,
+      acquireIp: null,
+      listPublicIpAddress: []
     }
   },
   mounted () {
@@ -180,6 +219,21 @@ export default {
         this.fetchLoading = false
       })
     },
+    fetchListPublicIpAddress () {
+      return new Promise((resolve, reject) => {
+        const params = {
+          zoneid: this.resource.zoneid,
+          domainid: this.resource.domainid,
+          account: this.resource.account,
+          forvirtualnetwork: true,
+          allocatedonly: false
+        }
+        api('listPublicIpAddresses', params).then(json => {
+          const listPublicIps = json.listpublicipaddressesresponse.publicipaddress || []
+          resolve(listPublicIps)
+        }).catch(reject)
+      })
+    },
     handleTierSelect (tier) {
       this.vpcTier = tier
       this.fetchData()
@@ -204,28 +258,32 @@ export default {
       } else {
         params.networkid = this.resource.id
       }
-      this.fetchLoading = true
+      params.ipaddress = this.acquireIp
+      this.acquireLoading = true
+
       api('associateIpAddress', params).then(response => {
         this.$pollJob({
           jobId: response.associateipaddressresponse.jobid,
-          successMessage: `Successfully acquired IP for ${this.resource.name}`,
+          successMessage: `${this.$t('message.success.acquire.ip')} ${this.$t('label.for')} ${this.resource.name}`,
           successMethod: () => {
             this.fetchData()
           },
-          errorMessage: 'Failed to acquire IP',
+          errorMessage: this.$t('message.acquire.ip.failed'),
           errorMethod: () => {
             this.fetchData()
           },
-          loadingMessage: `Acquiring IP for ${this.resource.name} is in progress`,
-          catchMessage: 'Error encountered while fetching async job result'
+          loadingMessage: `${this.$t('label.acquiring.ip')}} ${this.$t('label.for')} ${this.resource.name} ${this.$t('label.is.in.progress')}}`,
+          catchMessage: this.$t('error.fetching.async.job.result')
         })
       }).catch(error => {
-        this.fetchLoading = false
         this.$notification.error({
-          message: `Error ${error.response.status}`,
+          message: `${this.$t('label.error')} ${error.response.status}`,
           description: error.response.data.errorresponse.errortext,
           duration: 0
         })
+      }).finally(() => {
+        this.acquireLoading = false
+        this.onCloseModal()
       })
     },
     releaseIpAddress (ip) {
@@ -235,25 +293,54 @@ export default {
       }).then(response => {
         this.$pollJob({
           jobId: response.disassociateipaddressresponse.jobid,
-          successMessage: 'Successfully released IP',
+          successMessage: this.$t('message.success.release.ip'),
           successMethod: () => {
             this.fetchData()
           },
-          errorMessage: 'Failed to release IP',
+          errorMessage: this.$t('message.release.ip.failed'),
           errorMethod: () => {
             this.fetchData()
           },
-          loadingMessage: `Releasing IP for ${this.resource.name} is in progress`,
-          catchMessage: 'Error encountered while fetching async job result'
+          loadingMessage: `${this.$t('label.releasing.ip')} ${this.$t('label.for')} ${this.resource.name} ${this.$t('label.is.in.progress')}`,
+          catchMessage: this.$t('error.fetching.async.job.result')
         })
       }).catch(error => {
         this.fetchLoading = false
         this.$notification.error({
-          message: `Error ${error.response.status}`,
+          message: `${this.$t('label.error')} ${error.response.status}`,
           description: error.response.data.errorresponse.errortext,
           duration: 0
         })
       })
+    },
+    async onShowAcquireIp () {
+      this.showAcquireIp = true
+      this.acquireLoading = true
+      this.listPublicIpAddress = []
+
+      try {
+        const listPublicIpAddress = await this.fetchListPublicIpAddress()
+        listPublicIpAddress.forEach(item => {
+          if (item.state === 'Free') {
+            this.listPublicIpAddress.push({
+              ipaddress: item.ipaddress
+            })
+          }
+        })
+        this.listPublicIpAddress.sort(function (a, b) {
+          if (a.ipaddress < b.ipaddress) { return -1 }
+          if (a.ipaddress > b.ipaddress) { return 1 }
+          return 0
+        })
+        this.acquireIp = this.listPublicIpAddress && this.listPublicIpAddress.length > 0 ? this.listPublicIpAddress[0].ipaddress : null
+        this.acquireLoading = false
+      } catch (e) {
+        this.acquireLoading = false
+        this.$notifyError(e)
+      }
+    },
+    onCloseModal () {
+      this.showAcquireIp = false
     }
   }
 }

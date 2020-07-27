@@ -16,24 +16,38 @@
 // under the License.
 
 import kubernetes from '@/assets/icons/kubernetes.svg?inline'
+import store from '@/store'
 
 export default {
   name: 'image',
-  title: 'Images',
+  title: 'label.images',
   icon: 'picture',
+  docHelp: 'adminguide/templates.html',
   children: [
     {
       name: 'template',
-      title: 'Templates',
+      title: 'label.templates',
       icon: 'save',
+      docHelp: 'adminguide/templates.html',
       permission: ['listTemplates'],
-      params: { templatefilter: 'executable' },
+      params: { templatefilter: 'self', showunique: 'true' },
       resourceType: 'Template',
-      columns: ['name', 'ostypename', 'status', 'hypervisor', 'account', 'domain', 'order'],
-      details: ['name', 'id', 'displaytext', 'checksum', 'hypervisor', 'format', 'ostypename', 'size', 'isready', 'passwordenabled', 'directdownload', 'isextractable', 'isdynamicallyscalable', 'ispublic', 'isfeatured', 'crosszones', 'type', 'account', 'domain', 'created'],
+      filters: ['self', 'shared', 'featured', 'community'],
+      columns: () => {
+        var fields = ['name', 'hypervisor', 'ostypename']
+        if (['Admin', 'DomainAdmin'].includes(store.getters.userInfo.roletype)) {
+          fields.push('account')
+        }
+        if (['Admin'].includes(store.getters.userInfo.roletype)) {
+          fields.push('order')
+        }
+        return fields
+      },
+      details: ['name', 'id', 'displaytext', 'checksum', 'hypervisor', 'format', 'ostypename', 'size', 'isready', 'passwordenabled', 'sshkeyenabled', 'directdownload', 'isextractable', 'isdynamicallyscalable', 'ispublic', 'isfeatured', 'crosszones', 'type', 'account', 'domain', 'created', 'url'],
+      searchFilters: ['name', 'zoneid', 'tags'],
       related: [{
         name: 'vm',
-        title: 'Instances',
+        title: 'label.instances',
         param: 'templateid'
       }],
       tabs: [{
@@ -50,15 +64,17 @@ export default {
         {
           api: 'registerTemplate',
           icon: 'plus',
-          label: 'Register Template',
+          label: 'label.action.register.template',
+          docHelp: 'adminguide/templates.html#uploading-templates-from-a-remote-http-server',
           listView: true,
           popup: true,
           component: () => import('@/views/image/RegisterOrUploadTemplate.vue')
         },
         {
-          api: 'getUploadParamsForTemplate',
+          api: 'registerTemplate',
           icon: 'cloud-upload',
-          label: 'Upload Local Template',
+          label: 'label.upload.template.from.local',
+          docHelp: 'adminguide/templates.html#uploading-templates-and-isos-from-a-local-computer',
           listView: true,
           popup: true,
           component: () => import('@/views/image/RegisterOrUploadTemplate.vue')
@@ -68,14 +84,47 @@ export default {
           icon: 'edit',
           label: 'label.edit',
           dataView: true,
-          args: ['name', 'displaytext', 'passwordenabled', 'sshkeyenabled', 'ostypeid', 'isdynamicallyscalable', 'isrouting']
+          show: (record, store) => {
+            return (['Admin'].includes(store.userInfo.roletype) ||
+              (record.domainid === store.userInfo.domainid && record.account === store.userInfo.account)) &&
+              record.templatetype !== 'SYSTEM' &&
+              record.isready
+          },
+          args: (record, store) => {
+            var fields = ['name', 'displaytext', 'passwordenabled', 'sshkeyenabled', 'ostypeid', 'isdynamicallyscalable']
+            if (['Admin'].includes(store.userInfo.roletype)) {
+              fields.push('isrouting')
+            }
+            return fields
+          }
+        },
+        {
+          api: 'updateTemplatePermissions',
+          icon: 'share-alt',
+          label: 'label.action.template.share',
+          dataView: true,
+          args: ['ispublic', 'isfeatured', 'isextractable'],
+          show: (record, store) => {
+            return (['Admin'].includes(store.userInfo.roletype) ||
+              (record.domainid === store.userInfo.domainid && record.account === store.userInfo.account)) &&
+              record.templatetype !== 'SYSTEM' &&
+              record.isready
+          }
         },
         {
           api: 'extractTemplate',
           icon: 'cloud-download',
-          label: 'Download Template',
+          label: 'label.action.download.template',
+          message: 'message.action.download.template',
+          docHelp: 'adminguide/templates.html#exporting-templates',
           dataView: true,
-          show: (record) => { return record && record.isextractable },
+          show: (record, store) => {
+            return (['Admin'].includes(store.userInfo.roletype) ||
+              (record.domainid === store.userInfo.domainid && record.account === store.userInfo.account)) &&
+              record.templatetype !== 'SYSTEM' &&
+              record.isready &&
+              record.isextractable
+          },
           args: ['zoneid', 'mode'],
           mapping: {
             zoneid: {
@@ -90,41 +139,41 @@ export default {
         {
           api: 'updateTemplatePermissions',
           icon: 'reconciliation',
-          label: 'Update Template Permissions',
+          label: 'label.action.template.permission',
+          docHelp: 'adminguide/templates.html#sharing-templates-with-other-accounts-projects',
           dataView: true,
           popup: true,
-          show: (record, store) => { return (['Admin', 'DomainAdmin'].includes(store.userInfo.roletype) && (record.domainid === store.userInfo.domainid && record.account === store.userInfo.account) || record.templatetype !== 'BUILTIN') },
-          component: () => import('@/views/image/UpdateTemplatePermissions')
-        },
-        {
-          api: 'copyTemplate',
-          icon: 'copy',
-          label: 'Copy Template',
-          args: ['sourcezoneid', 'destzoneids'],
-          dataView: true
-        },
-        {
-          api: 'deleteTemplate',
-          icon: 'delete',
-          label: 'Delete Template',
-          args: ['zoneid'],
-          dataView: true,
-          groupAction: true
+          show: (record, store) => {
+            return (['Admin'].includes(store.userInfo.roletype) ||
+              (record.domainid === store.userInfo.domainid && record.account === store.userInfo.account)) &&
+              record.templatetype !== 'SYSTEM' &&
+              record.isready
+          },
+          component: () => import('@/views/image/UpdateTemplateIsoPermissions')
         }
       ]
     },
     {
       name: 'iso',
-      title: 'ISOs',
+      title: 'label.isos',
       icon: 'usb',
+      docHelp: 'adminguide/templates.html#working-with-isos',
       permission: ['listIsos'],
-      params: { isofilter: 'executable' },
+      params: { isofilter: 'self', showunique: 'true' },
       resourceType: 'ISO',
-      columns: ['name', 'ostypename', 'account', 'domain'],
+      filters: ['self', 'shared', 'featured', 'community'],
+      columns: () => {
+        var fields = ['name', 'ostypename']
+        if (['Admin', 'DomainAdmin'].includes(store.getters.userInfo.roletype)) {
+          fields.push('account')
+        }
+        return fields
+      },
       details: ['name', 'id', 'displaytext', 'checksum', 'ostypename', 'size', 'bootable', 'isready', 'directdownload', 'isextractable', 'ispublic', 'isfeatured', 'crosszones', 'account', 'domain', 'created'],
+      searchFilters: ['name', 'zoneid', 'tags'],
       related: [{
         name: 'vm',
-        title: 'Instances',
+        title: 'label.instances',
         param: 'isoid'
       }],
       tabs: [{
@@ -138,15 +187,17 @@ export default {
         {
           api: 'registerIso',
           icon: 'plus',
-          label: 'Register ISO',
+          label: 'label.action.register.iso',
+          docHelp: 'adminguide/templates.html#id10',
           listView: true,
           popup: true,
           component: () => import('@/views/image/RegisterOrUploadIso.vue')
         },
         {
-          api: 'getUploadParamsForIso',
+          api: 'registerIso',
           icon: 'cloud-upload',
-          label: 'Upload Local ISO',
+          label: 'label.upload.iso.from.local',
+          docHelp: 'adminguide/templates.html#id10',
           listView: true,
           popup: true,
           component: () => import('@/views/image/RegisterOrUploadIso.vue')
@@ -154,16 +205,42 @@ export default {
         {
           api: 'updateIso',
           icon: 'edit',
-          label: 'label.edit',
+          label: 'label.action.edit.iso',
           dataView: true,
-          args: ['name', 'displaytext', 'bootable', 'ostypeid', 'isdynamicallyscalable', 'isrouting']
+          show: (record, store) => {
+            return (['Admin'].includes(store.userInfo.roletype) ||
+              (record.domainid === store.userInfo.domainid && record.account === store.userInfo.account)) &&
+              !(record.account === 'SYSTEM' && record.domainid === 1) &&
+              record.isready
+          },
+          args: ['name', 'displaytext', 'bootable', 'ostypeid']
+        },
+        {
+          api: 'updateIsoPermissions',
+          icon: 'share-alt',
+          label: 'label.action.iso.share',
+          dataView: true,
+          args: ['ispublic', 'isfeatured', 'isextractable'],
+          show: (record, store) => {
+            return (['Admin'].includes(store.userInfo.roletype) ||
+              (record.domainid === store.userInfo.domainid && record.account === store.userInfo.account)) &&
+              !(record.account === 'SYSTEM' && record.domainid === 1) &&
+              record.isready
+          }
         },
         {
           api: 'extractIso',
           icon: 'cloud-download',
-          label: 'Download ISO',
+          label: 'label.action.download.iso',
+          message: 'message.action.download.iso',
+          docHelp: 'adminguide/templates.html#exporting-templates',
           dataView: true,
-          show: (record) => { return record && record.isextractable },
+          show: (record, store) => {
+            return (['Admin'].includes(store.userInfo.roletype) ||
+              (record.domainid === store.userInfo.domainid && record.account === store.userInfo.account)) &&
+              !(record.account === 'SYSTEM' && record.domainid === 1) &&
+              record.isready
+          },
           args: ['zoneid', 'mode'],
           mapping: {
             zoneid: {
@@ -178,31 +255,26 @@ export default {
         {
           api: 'updateIsoPermissions',
           icon: 'reconciliation',
-          label: 'Update ISO Permissions',
+          label: 'label.action.iso.permission',
+          docHelp: 'adminguide/templates.html#sharing-templates-with-other-accounts-projects',
           dataView: true,
-          args: ['op', 'accounts', 'projectids']
-        },
-        {
-          api: 'copyIso',
-          icon: 'copy',
-          label: 'Copy ISO',
-          args: ['sourcezoneid', 'destzoneids'],
-          dataView: true
-        },
-        {
-          api: 'deleteIso',
-          icon: 'delete',
-          label: 'Delete ISO',
-          args: ['zoneid'],
-          dataView: true,
-          groupAction: true
+          args: ['op', 'accounts', 'projectids'],
+          popup: true,
+          show: (record, store) => {
+            return (['Admin'].includes(store.userInfo.roletype) ||
+              (record.domainid === store.userInfo.domainid && record.account === store.userInfo.account)) &&
+              !(record.account === 'SYSTEM' && record.domainid === 1) &&
+              record.isready
+          },
+          component: () => import('@/views/image/UpdateTemplateIsoPermissions')
         }
       ]
     },
     {
       name: 'kubernetesiso',
-      title: 'Kubernetes ISOs',
+      title: 'label.kubernetes.isos',
       icon: kubernetes,
+      docHelp: 'plugins/cloudstack-kubernetes-service.html#kubernetes-supported-versions',
       permission: ['listKubernetesSupportedVersions'],
       columns: ['name', 'state', 'semanticversion', 'isostate', 'mincpunumber', 'minmemory', 'zonename'],
       details: ['name', 'semanticversion', 'zoneid', 'zonename', 'isoid', 'isoname', 'isostate', 'mincpunumber', 'minmemory', 'supportsha', 'state'],
@@ -210,7 +282,7 @@ export default {
         {
           api: 'addKubernetesSupportedVersion',
           icon: 'plus',
-          label: 'Add Kubernetes Version',
+          label: 'label.kubernetes.version.add',
           listView: true,
           popup: true,
           component: () => import('@/views/image/AddKubernetesSupportedVersion.vue')
@@ -218,7 +290,7 @@ export default {
         {
           api: 'updateKubernetesSupportedVersion',
           icon: 'edit',
-          label: 'Update Kuberntes Version',
+          label: 'label.kubernetes.version.update',
           dataView: true,
           popup: true,
           component: () => import('@/views/image/UpdateKubernetesSupportedVersion.vue')
@@ -226,7 +298,7 @@ export default {
         {
           api: 'deleteKubernetesSupportedVersion',
           icon: 'delete',
-          label: 'Delete Kubernetes Version',
+          label: 'label.kubernetes.version.delete',
           dataView: true
         }
       ]

@@ -17,14 +17,14 @@
 
 import Vue from 'vue'
 import axios from 'axios'
+import router from '@/router'
 import store from '@/store'
-import config from '@/config/settings'
 import { VueAxios } from './axios'
 import notification from 'ant-design-vue/es/notification'
-import { ACCESS_TOKEN, CURRENT_PROJECT } from '@/store/mutation-types'
+import { CURRENT_PROJECT } from '@/store/mutation-types'
+import i18n from '@/locales'
 
 const service = axios.create({
-  baseURL: config.apiBase,
   timeout: 600000
 })
 
@@ -32,28 +32,36 @@ const err = (error) => {
   const response = error.response
   if (response) {
     console.log(response)
-    const token = Vue.ls.get(ACCESS_TOKEN)
     if (response.status === 403) {
       const data = response.data
-      notification.error({ message: 'Forbidden', description: data.message })
+      notification.error({ message: i18n.t('label.forbidden'), description: data.message })
     }
     if (response.status === 401) {
       if (response.config && response.config.params && ['listIdps'].includes(response.config.params.command)) {
         return
       }
-      notification.error({ message: 'Unauthorized', description: 'Authorization verification failed' })
-      if (token) {
-        store.dispatch('Logout').then(() => {
-          setTimeout(() => {
-            window.location.reload()
-          }, 1500)
-        })
-      }
+      notification.error({
+        message: i18n.t('label.unauthorized'),
+        description: i18n.t('message.authorization.failed'),
+        key: 'http-401'
+      })
+      store.dispatch('Logout').then(() => {
+        setTimeout(() => {
+          window.location.reload()
+        }, 1500)
+      })
     }
     if (response.status === 404) {
-      notification.error({ message: 'Not Found', description: 'Resource not found' })
-      this.$router.push({ path: '/exception/404' })
+      notification.error({ message: i18n.t('label.not.found'), description: i18n.t('message.resource.not.found') })
+      router.push({ path: '/exception/404' })
     }
+  }
+  if (error.isAxiosError && !error.response) {
+    notification.warn({
+      message: error.message || i18n.t('message.network.error'),
+      description: i18n.t('message.network.error.description'),
+      key: 'network-error'
+    })
   }
   return Promise.reject(error)
 }

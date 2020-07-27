@@ -17,8 +17,10 @@
 
 const getters = {
   device: state => state.app.device,
+  version: state => state.app.version,
   theme: state => state.app.theme,
   color: state => state.app.color,
+  metrics: state => state.app.metrics,
   token: state => state.user.token,
   project: state => state.user.project,
   avatar: state => state.user.avatar,
@@ -30,7 +32,8 @@ const getters = {
   multiTab: state => state.app.multiTab,
   asyncJobIds: state => state.user.asyncJobIds,
   isLdapEnabled: state => state.user.isLdapEnabled,
-  cloudian: state => state.user.cloudian
+  cloudian: state => state.user.cloudian,
+  zones: state => state.user.zones
 }
 
 export default getters

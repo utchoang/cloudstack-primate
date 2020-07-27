@@ -27,8 +27,9 @@
         :key="index"
         v-if="item.resourcetypename !== 'project'"
         :v-bind="item.resourcetypename"
-        :label="$t('max' + item.resourcetypename.replace('_', ''))">
+        :label="$t('label.max' + item.resourcetypename.replace('_', ''))">
         <a-input-number
+          :disabled="!('updateResourceLimit' in $store.getters.apis)"
           style="width: 100%;"
           v-decorator="[item.resourcetype, {
             initialValue: item.max
@@ -37,10 +38,11 @@
       </a-form-item>
       <div class="card-footer">
         <a-button
+          :disabled="!('updateResourceLimit' in $store.getters.apis)"
           v-if="!($route.meta.name === 'domain' && resource.level === 0)"
           :loading="formLoading"
           type="primary"
-          @click="handleSubmit">{{ $t('submit') }}</a-button>
+          @click="handleSubmit">{{ $t('label.submit') }}</a-button>
       </div>
     </a-form>
   </a-spin>
@@ -103,7 +105,7 @@ export default {
         this.formLoading = false
       } catch (e) {
         this.$notification.error({
-          message: 'Request Failed',
+          message: this.$t('message.request.failed'),
           description: e
         })
         this.formLoading = false
@@ -132,13 +134,10 @@ export default {
         this.formLoading = true
 
         Promise.all(arrAsync).then(() => {
-          this.$message.success('Apply Successful')
+          this.$message.success(this.$t('message.apply.success'))
           this.fetchData()
         }).catch(error => {
-          this.$notification.error({
-            message: 'Request Failed',
-            description: error.response.headers['x-description']
-          })
+          this.$notifyError(error)
         }).finally(() => {
           this.formLoading = false
         })

@@ -18,7 +18,7 @@
 /* eslint-disable */
 import Vue from 'vue'
 import {
-  LocaleProvider,
+  ConfigProvider,
   Layout,
   Input,
   InputNumber,
@@ -55,11 +55,16 @@ import {
   Progress,
   Skeleton,
   Popconfirm,
+  Descriptions,
   message,
-  notification
+  notification,
+  Affix,
+  Timeline,
+  Pagination,
+  Comment
 } from 'ant-design-vue'
 
-Vue.use(LocaleProvider)
+Vue.use(ConfigProvider)
 Vue.use(Layout)
 Vue.use(Input)
 Vue.use(InputNumber)
@@ -97,6 +102,10 @@ Vue.use(Progress)
 Vue.use(Skeleton)
 Vue.use(Popconfirm)
 Vue.use(notification)
+Vue.use(Affix)
+Vue.use(Timeline)
+Vue.use(Pagination)
+Vue.use(Comment)
 
 Vue.prototype.$confirm = Modal.confirm
 Vue.prototype.$message = message

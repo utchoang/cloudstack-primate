@@ -22,21 +22,39 @@
         :form="form"
         @submit="handleSubmit"
         layout="vertical">
-        <a-form-item :label="$t('semanticversion')">
+        <a-form-item>
+          <span slot="label">
+            {{ $t('label.semanticversion') }}
+            <a-tooltip :title="apiParams.semanticversion.description">
+              <a-icon type="info-circle" style="color: rgba(0,0,0,.45)" />
+            </a-tooltip>
+          </span>
           <a-input
             v-decorator="['semanticversion', {
-              rules: [{ required: true, message: 'Please enter Kubernetes semantic version' }]
+              rules: [{ required: true, message: $t('message.error.kuberversion') }]
             }]"
             :placeholder="apiParams.semanticversion.description"/>
         </a-form-item>
-        <a-form-item :label="$t('name')">
+        <a-form-item>
+          <span slot="label">
+            {{ $t('label.name') }}
+            <a-tooltip :title="apiParams.name.description">
+              <a-icon type="info-circle" style="color: rgba(0,0,0,.45)" />
+            </a-tooltip>
+          </span>
           <a-input
             v-decorator="['name', {
-              rules: [{ message: 'Please enter name' }]
+              rules: [{ message: $t('message.error.name') }]
             }]"
-            :placeholder="$t('name')"/>
+            :placeholder="$t('label.name')"/>
         </a-form-item>
-        <a-form-item :label="$t('zoneid')">
+        <a-form-item>
+          <span slot="label">
+            {{ $t('label.zoneid') }}
+            <a-tooltip :title="apiParams.zoneid.description">
+              <a-icon type="info-circle" style="color: rgba(0,0,0,.45)" />
+            </a-tooltip>
+          </span>
           <a-select
             id="zone-selection"
             v-decorator="['zoneid', {
@@ -44,7 +62,7 @@
                 {
                   validator: (rule, value, callback) => {
                     if (value && value.length > 1 && value.indexOf(0) !== -1) {
-                      callback('All Zones cannot be combined with any other zone')
+                      callback(this.$t('message.error.zone.combined'))
                     }
                     callback()
                   }
@@ -63,28 +81,46 @@
             </a-select-option>
           </a-select>
         </a-form-item>
-        <a-form-item :label="$t('url')">
+        <a-form-item>
+          <span slot="label">
+            {{ $t('label.url') }}
+            <a-tooltip :title="apiParams.url.description">
+              <a-icon type="info-circle" style="color: rgba(0,0,0,.45)" />
+            </a-tooltip>
+          </span>
           <a-input
             v-decorator="['url', {
-              rules: [{ required: true, message: 'Please enter binaries ISO URL' }]
+              rules: [{ required: true, message: $t('message.error.binaries.iso.url') }]
             }]"
             :placeholder="apiParams.url.description" />
         </a-form-item>
-        <a-form-item :label="$t('checksum')">
+        <a-form-item>
+          <span slot="label">
+            {{ $t('label.checksum') }}
+            <a-tooltip :title="apiParams.checksum.description">
+              <a-icon type="info-circle" style="color: rgba(0,0,0,.45)" />
+            </a-tooltip>
+          </span>
           <a-input
             v-decorator="['checksum', {
-              rules: [{ required: false, message: 'Please enter input' }]
+              rules: [{ required: false, message: $t('message.error.required.input') }]
             }]"
             :placeholder="apiParams.checksum.description" />
         </a-form-item>
-        <a-form-item :label="$t('mincpunumber')">
+        <a-form-item>
+          <span slot="label">
+            {{ $t('label.mincpunumber') }}
+            <a-tooltip :title="apiParams.mincpunumber.description">
+              <a-icon type="info-circle" style="color: rgba(0,0,0,.45)" />
+            </a-tooltip>
+          </span>
           <a-input
             v-decorator="['mincpunumber', {
-              rules: [{ required: true, message: 'Please enter value' },
+              rules: [{ required: true, message: $t('message.please.enter.value') },
                       {
                         validator: (rule, value, callback) => {
                           if (value && (isNaN(value) || value <= 0)) {
-                            callback('Please enter a valid number')
+                            callback(this.$t('message.validate.number'))
                           }
                           callback()
                         }
@@ -93,14 +129,20 @@
             }]"
             :placeholder="apiParams.mincpunumber.description"/>
         </a-form-item>
-        <a-form-item :label="$t('minmemory')">
+        <a-form-item>
+          <span slot="label">
+            {{ $t('label.minmemory') }}
+            <a-tooltip :title="apiParams.minmemory.description">
+              <a-icon type="info-circle" style="color: rgba(0,0,0,.45)" />
+            </a-tooltip>
+          </span>
           <a-input
             v-decorator="['minmemory', {
-              rules: [{ required: true, message: 'Please enter value' },
+              rules: [{ required: true, message: $t('message.please.enter.value') },
                       {
                         validator: (rule, value, callback) => {
                           if (value && (isNaN(value) || value <= 0)) {
-                            callback('Please enter a valid number')
+                            callback(this.$t('message.validate.number'))
                           }
                           callback()
                         }
@@ -111,8 +153,8 @@
         </a-form-item>
 
         <div :span="24" class="action-button">
-          <a-button @click="closeAction">{{ this.$t('Cancel') }}</a-button>
-          <a-button :loading="loading" type="primary" @click="handleSubmit">{{ this.$t('OK') }}</a-button>
+          <a-button @click="closeAction">{{ this.$t('label.cancel') }}</a-button>
+          <a-button :loading="loading" type="primary" @click="handleSubmit">{{ this.$t('label.ok') }}</a-button>
         </div>
       </a-form>
     </a-spin>
@@ -204,12 +246,9 @@ export default {
           params.minmemory = values.minmemory
         }
         api('addKubernetesSupportedVersion', params).then(json => {
-          this.$message.success('Successfully added Kubernetes version: ' + values.semanticversion)
+          this.$message.success(`${this.$t('message.success.add.kuberversion')}: ${values.semanticversion}`)
         }).catch(error => {
-          this.$notification.error({
-            message: 'Request Failed',
-            description: (error.response && error.response.headers && error.response.headers['x-description']) || error.message
-          })
+          this.$notifyError(error)
         }).finally(() => {
           this.$emit('refresh-data')
           this.loading = false

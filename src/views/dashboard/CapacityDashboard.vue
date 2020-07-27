@@ -24,6 +24,7 @@
             showSearch
             optionFilterProp="children"
             :defaultValue="zoneSelected.name"
+            :placeholder="$t('label.select.a.zone')"
             :value="zoneSelected.name"
             @change="changeZone">
             <a-select-option v-for="(zone, index) in zones" :key="index">
@@ -32,16 +33,11 @@
           </a-select>
         </div>
         <div class="capacity-dashboard-button">
-          <a-tooltip placement="bottom">
-            <template slot="title">
-              Fetch Latest
-            </template>
-            <a-button
-              shape="circle"
-              @click="listCapacity(zoneSelected, true)">
-              <a-icon class="capacity-dashboard-button-icon" type="reload" />
-            </a-button>
-          </a-tooltip>
+          <a-button
+            shape="round"
+            @click="listCapacity(zoneSelected, true)">
+            {{ $t('label.fetch.latest') }}
+          </a-button>
         </div>
       </div>
       <a-row :gutter="12">
@@ -53,15 +49,18 @@
           v-for="stat in stats"
           :key="stat.type">
           <chart-card :loading="loading">
-            <div class="capacity-dashboard-chart-card-inner">
-              <h4>{{ $t(stat.name) }}</h4>
-              <a-progress
-                type="dashboard"
-                :status="getStatus(parseFloat(stat.percentused))"
-                :percent="parseFloat(stat.percentused)"
-                :format="percent => `${parseFloat(stat.percentused, 10).toFixed(2)}%`"
-                :width="100" />
-            </div>
+            <router-link :to="{ path: '/zone/' + zoneSelected.id }">
+              <div class="capacity-dashboard-chart-card-inner">
+                <h3>{{ $t(ts[stat.name]) }}</h3>
+                <a-progress
+                  type="dashboard"
+                  :status="getStatus(parseFloat(stat.percentused))"
+                  :percent="parseFloat(stat.percentused)"
+                  :format="percent => `${parseFloat(stat.percentused).toFixed(2)}%`"
+                  :strokeColor="getStrokeColour(parseFloat(stat.percentused))"
+                  :width="100" />
+              </div>
+            </router-link>
             <template slot="footer"><center>{{ displayData(stat.name, stat.capacityused) }} / {{ displayData(stat.name, stat.capacitytotal) }}</center></template>
           </chart-card>
         </a-col>
@@ -69,11 +68,11 @@
     </a-col>
 
     <a-col :xl="6">
-      <chart-card>
+      <chart-card :loading="loading">
         <div style="text-align: center">
           <a-tooltip placement="bottom" class="capacity-dashboard-button-wrapper">
             <template slot="title">
-              View Hosts in Alert State
+              {{ $t('label.view') + ' ' + $t('label.host.alerts') }}
             </template>
             <a-button type="danger" shape="circle">
               <router-link :to="{ name: 'host', query: {'state': 'Alert'} }">
@@ -83,7 +82,7 @@
           </a-tooltip>
           <a-tooltip placement="bottom" class="capacity-dashboard-button-wrapper">
             <template slot="title">
-              View Alerts
+              {{ $t('label.view') + ' ' + $t('label.alerts') }}
             </template>
             <a-button shape="circle">
               <router-link :to="{ name: 'alert' }">
@@ -93,7 +92,7 @@
           </a-tooltip>
           <a-tooltip placement="bottom" class="capacity-dashboard-button-wrapper">
             <template slot="title">
-              View Events
+              {{ $t('label.view') + ' ' + $t('label.events') }}
             </template>
             <a-button shape="circle">
               <router-link :to="{ name: 'event' }">
@@ -110,7 +109,7 @@
                 :key="event.id"
                 :color="getEventColour(event)">
                 <span :style="{ color: '#999' }"><small>{{ event.created }}</small></span><br/>
-                <span :style="{ color: '#666' }"><small>{{ event.type }}</small></span><br/>
+                <span :style="{ color: '#666' }"><small>{{ $t(event.type.toLowerCase()) }}</small></span><br/>
                 <span :style="{ color: '#aaa' }">({{ event.username }}) {{ event.description }}</span>
               </a-timeline-item>
             </a-timeline>
@@ -137,7 +136,21 @@ export default {
       events: [],
       zones: [],
       zoneSelected: {},
-      stats: []
+      stats: [],
+      ts: {
+        CPU: 'label.cpu',
+        CPU_CORE: 'label.cpunumber',
+        DIRECT_ATTACHED_PUBLIC_IP: 'label.direct.ips',
+        GPU: 'label.gpu',
+        LOCAL_STORAGE: 'label.local.storage',
+        MEMORY: 'label.memory',
+        PRIVATE_IP: 'label.management.ips',
+        SECONDARY_STORAGE: 'label.secondary.storage',
+        STORAGE: 'label.storage',
+        STORAGE_ALLOCATED: 'label.primary.storage',
+        VIRTUAL_NETWORK_PUBLIC_IP: 'label.public.ips',
+        VLAN: 'label.vlan'
+      }
     }
   },
   mounted () {
@@ -165,6 +178,12 @@ export default {
       }
       return 'normal'
     },
+    getStrokeColour (value) {
+      if (value >= 80) {
+        return 'red'
+      }
+      return 'primary'
+    },
     displayData (dataType, value) {
       switch (dataType) {
         case 'CPU':
@@ -174,8 +193,13 @@ export default {
         case 'STORAGE':
         case 'STORAGE_ALLOCATED':
         case 'SECONDARY_STORAGE':
-        case 'CAPACITY_TYPE_LOCAL_STORAGE':
-          value = parseFloat(value / (1024 * 1024 * 1024.0), 10).toFixed(2) + ' GB'
+        case 'LOCAL_STORAGE':
+          value = parseFloat(value / (1024 * 1024 * 1024.0), 10).toFixed(2)
+          if (value >= 1024.0) {
+            value = parseFloat(value / 1024.0).toFixed(2) + ' TB'
+          } else {
+            value = value + ' GB'
+          }
           break
       }
       return value

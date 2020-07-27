@@ -18,12 +18,12 @@
 <template>
   <div>
     <span v-if="showError">
-      <a-alert type="error" message="Single-Sign-On failed for Cloudian Management Console. Please ask your administrator to fix integration issues." showIcon />
+      <a-alert type="error" :message="$t('message.error.cloudian.console')" showIcon />
       <br/>
-      <a-button @click="doSso()">Try Again</a-button>
+      <a-button @click="doSso()">{{ $t('label.try.again') }}</a-button>
     </span>
     <span v-else>
-      <a-alert type="info" message="Cloudian Management Console should open in another window" showIcon />
+      <a-alert type="info" :message="$t('message.info.cloudian.console')" showIcon />
     </span>
     <br/>
   </div>
@@ -44,16 +44,13 @@ export default {
   },
   methods: {
     doSso () {
+      this.showError = false
       api('cloudianSsoLogin').then(json => {
         const url = json.cloudianssologinresponse.cloudianssologin.url
         const cmcWindow = window.open(url, 'CMCWindow')
         cmcWindow.focus()
       }).catch(error => {
-        this.$notification.error({
-          message: 'Single-Sign-On Failed',
-          description: error.response.headers['x-description'] || 'Request Failed',
-          duration: 0
-        })
+        this.$notifyError(error)
         this.showError = true
       })
     }

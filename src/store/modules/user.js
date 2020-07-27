@@ -18,8 +18,12 @@
 import Cookies from 'js-cookie'
 import Vue from 'vue'
 import md5 from 'md5'
+import message from 'ant-design-vue/es/message'
+import router from '@/router'
+import store from '@/store'
 import { login, logout, api } from '@/api'
-import { ACCESS_TOKEN, CURRENT_PROJECT, DEFAULT_THEME, ASYNC_JOB_IDS } from '@/store/mutation-types'
+import i18n from '@/locales'
+import { ACCESS_TOKEN, CURRENT_PROJECT, DEFAULT_THEME, APIS, ASYNC_JOB_IDS, ZONES } from '@/store/mutation-types'
 
 const user = {
   state: {
@@ -32,14 +36,15 @@ const user = {
     project: {},
     asyncJobIds: [],
     isLdapEnabled: false,
-    cloudian: {}
+    cloudian: {},
+    zones: {}
   },
 
   mutations: {
     SET_TOKEN: (state, token) => {
       state.token = token
     },
-    SET_PROJECT: (state, project) => {
+    SET_PROJECT: (state, project = {}) => {
       Vue.ls.set(CURRENT_PROJECT, project)
       state.project = project
     },
@@ -54,6 +59,7 @@ const user = {
     },
     SET_APIS: (state, apis) => {
       state.apis = apis
+      Vue.ls.set(APIS, apis)
     },
     SET_FEATURES: (state, features) => {
       state.features = features
@@ -70,6 +76,10 @@ const user = {
     },
     RESET_THEME: (state) => {
       Vue.ls.set(DEFAULT_THEME, 'light')
+    },
+    SET_ZONES: (state, zones) => {
+      state.zones = zones
+      Vue.ls.set(ZONES, zones)
     }
   },
 
@@ -85,7 +95,6 @@ const user = {
           Cookies.set('account', result.account, { expires: 1 })
           Cookies.set('domainid', result.domainid, { expires: 1 })
           Cookies.set('role', result.type, { expires: 1 })
-          Cookies.set('sessionkey', result.sessionkey, { expires: 1 })
           Cookies.set('timezone', result.timezone, { expires: 1 })
           Cookies.set('timezoneoffset', result.timezoneoffset, { expires: 1 })
           Cookies.set('userfullname', result.firstname + ' ' + result.lastname, { expires: 1 })
@@ -114,24 +123,44 @@ const user = {
 
     GetInfo ({ commit }) {
       return new Promise((resolve, reject) => {
-        api('listApis').then(response => {
-          const apis = {}
-          const apiList = response.listapisresponse.api
-          for (var idx = 0; idx < apiList.length; idx++) {
-            const api = apiList[idx]
-            const apiName = api.name
-            apis[apiName] = {
-              params: api.params,
-              response: api.response
+        const cachedApis = Vue.ls.get(APIS, {})
+        const cachedZones = Vue.ls.get(ZONES, [])
+        const hasAuth = Object.keys(cachedApis).length > 0
+        if (hasAuth) {
+          console.log('Login detected, using cached APIs')
+          commit('SET_ZONES', cachedZones)
+          commit('SET_APIS', cachedApis)
+          resolve(cachedApis)
+        } else {
+          const hide = message.loading(i18n.t('message.discovering.feature'), 0)
+          api('listZones', { listall: true }).then(json => {
+            const zones = json.listzonesresponse.zone || []
+            commit('SET_ZONES', zones)
+          })
+          api('listApis').then(response => {
+            const apis = {}
+            const apiList = response.listapisresponse.api
+            for (var idx = 0; idx < apiList.length; idx++) {
+              const api = apiList[idx]
+              const apiName = api.name
+              apis[apiName] = {
+                params: api.params,
+                response: api.response
+              }
             }
-          }
-          commit('SET_APIS', apis)
-          resolve(apis)
-        }).catch(error => {
-          reject(error)
-        })
+            commit('SET_APIS', apis)
+            resolve(apis)
+            store.dispatch('GenerateRoutes', { apis }).then(() => {
+              router.addRoutes(store.getters.addRouters)
+            })
+            hide()
+            message.success(i18n.t('message.sussess.discovering.feature'))
+          }).catch(error => {
+            reject(error)
+          })
+        }
 
-        api('listUsers').then(response => {
+        api('listUsers', { username: Cookies.get('username'), listall: true }).then(response => {
           const result = response.listusersresponse.user[0]
           commit('SET_INFO', result)
           commit('SET_NAME', result.firstname + ' ' + result.lastname)

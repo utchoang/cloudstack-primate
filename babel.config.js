@@ -15,9 +15,20 @@
 // specific language governing permissions and limitations
 // under the License.
 
-module.exports = {
+const babelConfig = {
   presets: [
     '@vue/app'
+  ],
+  plugins: [
+    [
+      'import',
+      {
+        libraryName: '@ant-design/icons',
+        libraryDirectory: 'es/icons',
+        camel2DashComponentName: false
+      },
+      '@ant-design/icons'
+    ]
   ]
   // if your use import on Demand, Use this code
   // ,
@@ -29,3 +40,9 @@ module.exports = {
   //   } ]
   // ]
 }
+
+if (process.env.ENV_NODE === 'test') {
+  babelConfig.plugins.push('require-context-hook')
+}
+
+module.exports = babelConfig

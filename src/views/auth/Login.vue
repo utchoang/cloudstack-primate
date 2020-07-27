@@ -33,16 +33,16 @@
       <a-tab-pane key="cs">
         <span slot="tab">
           <a-icon type="safety" />
-          Portal Login
+          {{ $t('label.login.portal') }}
         </span>
         <a-form-item>
           <a-input
             size="large"
             type="text"
-            placeholder="Username"
+            :placeholder="$t('label.username')"
             v-decorator="[
               'username',
-              {rules: [{ required: true, message: 'Enter your username' }, { validator: handleUsernameOrEmail }], validateTrigger: 'change'}
+              {rules: [{ required: true, message: $t('message.error.username') }, { validator: handleUsernameOrEmail }], validateTrigger: 'change'}
             ]"
           >
             <a-icon slot="prefix" type="user" :style="{ color: 'rgba(0,0,0,.25)' }"/>
@@ -54,10 +54,10 @@
             size="large"
             type="password"
             autocomplete="false"
-            placeholder="Password"
+            :placeholder="$t('label.password')"
             v-decorator="[
               'password',
-              {rules: [{ required: true, message: 'Enter your password' }], validateTrigger: 'blur'}
+              {rules: [{ required: true, message: $t('message.error.password') }], validateTrigger: 'blur'}
             ]"
           >
             <a-icon slot="prefix" type="lock" :style="{ color: 'rgba(0,0,0,.25)' }"/>
@@ -68,10 +68,10 @@
           <a-input
             size="large"
             type="text"
-            placeholder="Domain"
+            :placeholder="$t('label.domain')"
             v-decorator="[
               'domain',
-              {rules: [{ required: false, message: 'Enter your domain, leave empty for ROOT domain' }], validateTrigger: 'change'}
+              {rules: [{ required: false, message: $t('message.error.domain') }], validateTrigger: 'change'}
             ]"
           >
             <a-icon slot="prefix" type="block" :style="{ color: 'rgba(0,0,0,.25)' }"/>
@@ -82,7 +82,7 @@
       <a-tab-pane key="saml" :disabled="idps.length === 0">
         <span slot="tab">
           <a-icon type="audit" />
-          Single-Sign-On
+          Single Sign-On
         </span>
         <a-form-item>
           <a-select v-decorator="['idp', { initialValue: selectedIdp } ]">
@@ -102,18 +102,20 @@
         class="login-button"
         :loading="state.loginBtn"
         :disabled="state.loginBtn"
-      >Log In</a-button>
+      >{{ $t('label.login') }}</a-button>
     </a-form-item>
+    <translation-menu/>
   </a-form>
 </template>
 
 <script>
 import { api } from '@/api'
 import { mapActions } from 'vuex'
-import config from '@/config/settings'
+import TranslationMenu from '@/components/header/TranslationMenu'
 
 export default {
   components: {
+    TranslationMenu
   },
   data () {
     return {
@@ -192,7 +194,7 @@ export default {
               })
           } else if (customActiveKey === 'saml') {
             state.loginBtn = false
-            var samlUrl = config.apiBase + '?command=samlSso'
+            var samlUrl = this.$config.apiBase + '?command=samlSso'
             if (values.idp) {
               samlUrl += ('&idpid=' + values.idp)
             }
@@ -210,9 +212,10 @@ export default {
     },
     requestFailed (err) {
       if (err && err.response && err.response.data && err.response.data.loginresponse) {
-        this.$message.error('Error ' + err.response.data.loginresponse.errorcode + ': ' + err.response.data.loginresponse.errortext)
+        const error = err.response.data.loginresponse.errorcode + ': ' + err.response.data.loginresponse.errortext
+        this.$message.error(`${this.$t('label.error')} ${error}`)
       } else {
-        this.$message.error('Login Failed')
+        this.$message.error(this.$t('message.login.failed'))
       }
     }
   }

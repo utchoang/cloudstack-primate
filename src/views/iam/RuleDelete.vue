@@ -18,13 +18,13 @@
 <template>
   <a-tooltip placement="bottom">
     <template slot="title">
-      Delete rule
+      {{ $t('label.delete.rule') }}
     </template>
     <a-popconfirm
-      title="Delete Rule?"
+      :title="`${$t('label.delete.rule')}?`"
       @confirm="handleDelete"
-    >
-      <a-button type="danger" shape="circle">
+      :disabled="disabled">
+      <a-button type="danger" shape="circle" :disabled="disabled">
         <a-icon type="delete" />
       </a-button>
     </a-popconfirm>
@@ -38,6 +38,10 @@ export default {
     record: {
       type: Object,
       required: true
+    },
+    disabled: {
+      type: Boolean,
+      default: false
     }
   },
   methods: {

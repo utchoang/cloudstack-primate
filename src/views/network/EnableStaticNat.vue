@@ -19,7 +19,7 @@
   <div class="list" :loading="loading">
     <div class="list__header">
       <div class="list__header__col" v-if="tiersSelect">
-        <a-select @change="handleTierSelect" v-model="vpcTiers" placeholder="Select a tier">
+        <a-select @change="handleTierSelect" v-model="vpcTiers" :placeholder="$t('label.select.tier')">
           <a-select-option v-for="network in networksList" :key="network.id" :value="network.id">
             {{ network.name }}
           </a-select-option>
@@ -28,7 +28,7 @@
 
       <div class="list__header__col list__header__col--full">
         <a-input-search
-          placeholder="Search"
+          :placeholder="$t('label.search')"
           v-model="searchQuery"
           @search="fetchData" />
       </div>
@@ -74,15 +74,19 @@
       :current="page"
       :pageSize="pageSize"
       :total="vmsList.length"
-      :showTotal="total => `Total ${total} items`"
+      :showTotal="total => `${$t('label.total')} ${total} ${$t('label.items')}`"
       :pageSizeOptions="['10', '20', '40', '80', '100']"
       @change="changePage"
       @showSizeChange="changePageSize"
-      showSizeChanger/>
+      showSizeChanger>
+      <template slot="buildOptionText" slot-scope="props">
+        <span>{{ props.value }} / {{ $t('label.page') }}</span>
+      </template>
+    </a-pagination>
 
     <div class="list__footer">
-      <a-button @click="handleClose">{{ $t('cancel') }}</a-button>
-      <a-button @click="handleSubmit" type="primary" :disabled="!selectedVm || !selectedNic">{{ $t('OK') }}</a-button>
+      <a-button @click="handleClose">{{ $t('label.cancel') }}</a-button>
+      <a-button @click="handleSubmit" type="primary" :disabled="!selectedVm || !selectedNic">{{ $t('label.ok') }}</a-button>
     </div>
 
   </div>
@@ -113,32 +117,28 @@ export default {
       selectedNic: null,
       columns: [
         {
-          title: this.$t('name'),
+          title: this.$t('label.name'),
           scopedSlots: { customRender: 'name' }
         },
         {
-          title: this.$t('instancename'),
-          dataIndex: 'instancename'
-        },
-        {
-          title: this.$t('displayname'),
-          dataIndex: 'displayname'
-        },
-        {
-          title: this.$t('account'),
-          dataIndex: 'account'
-        },
-        {
-          title: this.$t('zonenamelabel'),
-          dataIndex: 'zonename'
-        },
-        {
-          title: this.$t('state'),
+          title: this.$t('label.state'),
           dataIndex: 'state',
           scopedSlots: { customRender: 'state' }
         },
         {
-          title: 'Select',
+          title: this.$t('label.displayname'),
+          dataIndex: 'displayname'
+        },
+        {
+          title: this.$t('label.account'),
+          dataIndex: 'account'
+        },
+        {
+          title: this.$t('label.zonenamelabel'),
+          dataIndex: 'zonename'
+        },
+        {
+          title: this.$t('label.select'),
           dataIndex: 'id',
           scopedSlots: { customRender: 'radio' }
         }
@@ -172,12 +172,9 @@ export default {
         domainid: this.resource.domainid,
         keyword: this.searchQuery
       }).then(response => {
-        this.vmsList = response.listvirtualmachinesresponse.virtualmachine
+        this.vmsList = response.listvirtualmachinesresponse.virtualmachine || []
       }).catch(error => {
-        this.$notification.error({
-          message: 'Request Failed',
-          description: error.response.headers['x-description']
-        })
+        this.$notifyError(error)
       }).finally(() => {
         this.loading = false
       })
@@ -196,10 +193,7 @@ export default {
       }).then(response => {
         this.vmsList = response.listvirtualmachinesresponse.virtualmachine || []
       }).catch(error => {
-        this.$notification.error({
-          message: 'Request Failed',
-          description: error.response.headers['x-description']
-        })
+        this.$notifyError(error)
       }).finally(() => {
         this.loading = false
       })
@@ -210,9 +204,9 @@ export default {
       this.loading = true
       api('listNics', {
         virtualmachineid: this.selectedVm,
-        networkid: this.resource.associatednetworkid
+        networkid: this.resource.associatednetworkid || this.selectedVpcTier
       }).then(response => {
-        this.nicsList = response.listnicsresponse.nic
+        this.nicsList = response.listnicsresponse.nic || []
 
         let secondaryIps = this.nicsList.map(item => item.secondaryip)
 
@@ -223,10 +217,7 @@ export default {
 
         this.selectedNic = this.nicsList[0]
       }).catch(error => {
-        this.$notification.error({
-          message: 'Request Failed',
-          description: error.response.headers['x-description']
-        })
+        this.$notifyError(error)
       }).finally(() => {
         this.loading = false
       })
@@ -241,10 +232,7 @@ export default {
       }).then(response => {
         this.networksList = response.listnetworksresponse.network
       }).catch(error => {
-        this.$notification.error({
-          message: 'Request Failed',
-          description: error.response.headers['x-description']
-        })
+        this.$notifyError(error)
       }).finally(() => {
         this.loading = false
       })
@@ -259,11 +247,7 @@ export default {
       }).then(() => {
         this.parentFetchData()
       }).catch(error => {
-        this.$notification.error({
-          message: 'Request Failed',
-          description: error.response.headers['x-description'],
-          duration: 0
-        })
+        this.$notifyError(error)
       }).finally(() => {
         this.loading = false
         this.handleClose()

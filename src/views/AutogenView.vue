@@ -19,59 +19,89 @@
   <div>
     <a-card class="breadcrumb-card">
       <a-row>
-        <a-col :span="14" style="padding-left: 6px">
+        <a-col :span="device === 'mobile' ? 24 : 12" style="padding-left: 12px">
           <breadcrumb :resource="resource">
-            <a-tooltip placement="bottom" slot="end">
-              <template slot="title">
-                {{ "Refresh" }}
-              </template>
+            <span slot="end">
               <a-button
-                style="margin-top: 4px"
                 :loading="loading"
+                style="margin-bottom: 5px"
                 shape="round"
                 size="small"
                 icon="reload"
-                @click="fetchData()">
-                {{ "Refresh" }}
+                @click="fetchData({ irefresh: true })">
+                {{ $t('label.refresh') }}
               </a-button>
-            </a-tooltip>
+              <a-switch
+                v-if="!dataView && ['vm', 'volume', 'zone', 'cluster', 'host', 'storagepool'].includes($route.name)"
+                style="margin-left: 8px"
+                :checked-children="$t('label.metrics')"
+                :un-checked-children="$t('label.metrics')"
+                :checked="$store.getters.metrics"
+                @change="(checked, event) => { $store.dispatch('SetMetrics', checked) }"/>
+              <a-tooltip placement="right">
+                <template slot="title">
+                  {{ $t('label.filterby') }}
+                </template>
+                <a-select
+                  v-if="!dataView && $route.meta.filters && $route.meta.filters.length > 0"
+                  :placeholder="$t('label.filterby')"
+                  :value="$route.query.filter || 'self'"
+                  style="min-width: 100px; margin-left: 10px"
+                  @change="changeFilter">
+                  <a-icon slot="suffixIcon" type="filter" />
+                  <a-select-option v-if="['Admin', 'DomainAdmin'].includes($store.getters.userInfo.roletype) || $route.name === 'vm'" key="all">
+                    {{ $t('label.all') }}
+                  </a-select-option>
+                  <a-select-option v-for="filter in $route.meta.filters" :key="filter">
+                    {{ $t('label.' + filter) }}
+                  </a-select-option>
+                </a-select>
+              </a-tooltip>
+            </span>
           </breadcrumb>
         </a-col>
-        <a-col :span="10">
-          <span style="float: right">
-            <action-button
-              style="margin-bottom: 5px"
-              :loading="loading"
-              :actions="actions"
-              :selectedRowKeys="selectedRowKeys"
-              :dataView="dataView"
-              :resource="resource"
-              @exec-action="execAction"/>
-            <a-input-search
-              style="width: 20vw; margin-left: 10px"
-              placeholder="Search"
-              v-model="searchQuery"
-              v-if="!dataView && !treeView"
-              allowClear
-              @search="onSearch" />
-          </span>
+        <a-col
+          :span="device === 'mobile' ? 24 : 12"
+          :style="device === 'mobile' ? { float: 'right', 'margin-top': '12px', 'margin-bottom': '-6px', display: 'table' } : { float: 'right', display: 'table', 'margin-bottom': '-6px' }" >
+          <action-button
+            :style="dataView ? { float: device === 'mobile' ? 'left' : 'right' } : { 'margin-right': '10px', display: 'inline-flex' }"
+            :loading="loading"
+            :actions="actions"
+            :selectedRowKeys="selectedRowKeys"
+            :dataView="dataView"
+            :resource="resource"
+            @exec-action="execAction"/>
+          <search-view
+            v-if="!dataView"
+            :searchFilters="searchFilters"
+            :searchParams="searchParams"
+            :apiName="apiName"/>
         </a-col>
       </a-row>
     </a-card>
 
     <div v-show="showAction">
-      <keep-alive v-if="currentAction.component">
+      <keep-alive v-if="currentAction.component && (!currentAction.groupAction || this.selectedRowKeys.length === 0)">
         <a-modal
-          :title="$t(currentAction.label)"
           :visible="showAction"
           :closable="true"
           style="top: 20px;"
           @cancel="closeAction"
-          :confirmLoading="currentAction.loading"
+          :confirmLoading="actionLoading"
           :footer="null"
           centered
           width="auto"
         >
+          <span slot="title">
+            {{ $t(currentAction.label) }}
+            <a
+              v-if="currentAction.docHelp || $route.meta.docHelp"
+              style="margin-left: 5px"
+              :href="$config.docBase + '/' + (currentAction.docHelp || $route.meta.docHelp)"
+              target="_blank">
+              <a-icon type="question-circle-o"></a-icon>
+            </a>
+          </span>
           <component
             :is="currentAction.component"
             :resource="resource"
@@ -90,7 +120,7 @@
         style="top: 20px;"
         @ok="handleSubmit"
         @cancel="closeAction"
-        :confirmLoading="currentAction.loading"
+        :confirmLoading="actionLoading"
         centered
       >
         <span slot="title">
@@ -98,15 +128,22 @@
           <a
             v-if="currentAction.docHelp || $route.meta.docHelp"
             style="margin-left: 5px"
-            :href="docBase + '/' + (currentAction.docHelp || $route.meta.docHelp)"
+            :href="$config.docBase + '/' + (currentAction.docHelp || $route.meta.docHelp)"
             target="_blank">
             <a-icon type="question-circle-o"></a-icon>
           </a>
         </span>
-        <a-spin :spinning="currentAction.loading">
+        <a-spin :spinning="actionLoading">
+          <span v-if="currentAction.message">
+            <a-alert type="warning">
+              <span slot="message" v-html="$t(currentAction.message)" />
+            </a-alert>
+            <br v-if="currentAction.paramFields.length > 0"/>
+          </span>
           <a-form
             :form="form"
             @submit="handleSubmit"
+            v-show="dataView || !currentAction.groupAction || this.selectedRowKeys.length === 0"
             layout="vertical" >
             <a-form-item
               v-for="(field, fieldIndex) in currentAction.paramFields"
@@ -115,7 +152,7 @@
               v-if="!(currentAction.mapping && field.name in currentAction.mapping && currentAction.mapping[field.name].value)"
             >
               <span slot="label">
-                {{ $t(field.name) }}
+                {{ $t('label.' + field.name) }}
                 <a-tooltip :title="field.description">
                   <a-icon type="info-circle" style="color: rgba(0,0,0,.45)" />
                 </a-tooltip>
@@ -124,8 +161,9 @@
               <span v-if="field.type==='boolean'">
                 <a-switch
                   v-decorator="[field.name, {
-                    rules: [{ required: field.required, message: 'Please provide input' }]
+                    rules: [{ required: field.required, message: `${$t('message.error.required.input')}` }]
                   }]"
+                  v-model="formModel[field.name]"
                   :placeholder="field.description"
                 />
               </span>
@@ -133,24 +171,24 @@
                 <a-select
                   :loading="field.loading"
                   v-decorator="[field.name, {
-                    rules: [{ required: field.required, message: 'Please select option' }]
+                    rules: [{ required: field.required, message: `${$t('message.error.select')}` }]
                   }]"
                   :placeholder="field.description"
                 >
+                  <a-select-option :key="null">{{ }}</a-select-option>
                   <a-select-option v-for="(opt, optIndex) in currentAction.mapping[field.name].options" :key="optIndex">
                     {{ opt }}
                   </a-select-option>
                 </a-select>
               </span>
               <span
-                v-else-if="field.type==='uuid' ||
-                  (field.name==='account' && !['addAccountToProject', 'createAccount'].includes(currentAction.api)) ||
-                  field.name==='keypair'">
+                v-else-if="field.name==='keypair' ||
+                  (field.name==='account' && !['addAccountToProject', 'createAccount'].includes(currentAction.api))">
                 <a-select
                   showSearch
                   optionFilterProp="children"
                   v-decorator="[field.name, {
-                    rules: [{ required: field.required, message: 'Please select option' }]
+                    rules: [{ required: field.required, message: `${$t('message.error.select')}` }]
                   }]"
                   :loading="field.loading"
                   :placeholder="field.description"
@@ -158,7 +196,28 @@
                     return option.componentOptions.children[0].text.toLowerCase().indexOf(input.toLowerCase()) >= 0
                   }"
                 >
+                  <a-select-option :key="null">{{ }}</a-select-option>
                   <a-select-option v-for="(opt, optIndex) in field.opts" :key="optIndex">
+                    {{ opt.name || opt.description || opt.traffictype || opt.publicip }}
+                  </a-select-option>
+                </a-select>
+              </span>
+              <span
+                v-else-if="field.type==='uuid'">
+                <a-select
+                  showSearch
+                  optionFilterProp="children"
+                  v-decorator="[field.name, {
+                    rules: [{ required: field.required, message: `${$t('message.error.select')}` }]
+                  }]"
+                  :loading="field.loading"
+                  :placeholder="field.description"
+                  :filterOption="(input, option) => {
+                    return option.componentOptions.children[0].text.toLowerCase().indexOf(input.toLowerCase()) >= 0
+                  }"
+                >
+                  <a-select-option :key="null">{{ }}</a-select-option>
+                  <a-select-option v-for="opt in field.opts" :key="opt.id">
                     {{ opt.name || opt.description || opt.traffictype || opt.publicip }}
                   </a-select-option>
                 </a-select>
@@ -168,7 +227,7 @@
                   :loading="field.loading"
                   mode="multiple"
                   v-decorator="[field.name, {
-                    rules: [{ required: field.required, message: 'Please select option' }]
+                    rules: [{ required: field.required, message: `${$t('message.error.select')}` }]
                   }]"
                   :placeholder="field.description"
                 >
@@ -180,24 +239,33 @@
               <span v-else-if="field.type==='long'">
                 <a-input-number
                   v-decorator="[field.name, {
-                    rules: [{ required: field.required, message: 'Please enter a number' }]
+                    rules: [{ required: field.required, message: `${$t('message.validate.number')}` }]
                   }]"
                   :placeholder="field.description"
                 />
               </span>
-              <span v-else-if="field.name==='password' || field.name==='currentpassword'">
+              <span v-else-if="field.name==='password' || field.name==='currentpassword' || field.name==='confirmpassword'">
                 <a-input-password
                   v-decorator="[field.name, {
-                    rules: [{ required: field.required, message: 'Please enter input' }]
+                    rules: [
+                      {
+                        required: field.required,
+                        message: `${$t('message.error.required.input')}`
+                      },
+                      {
+                        validator: validateTwoPassword
+                      }
+                    ]
                   }]"
                   :placeholder="field.description"
+                  @blur="($event) => handleConfirmBlur($event, field.name)"
                 />
               </span>
               <span v-else-if="field.name==='certificate' || field.name==='privatekey' || field.name==='certchain'">
                 <a-textarea
                   rows="2"
                   v-decorator="[field.name, {
-                    rules: [{ required: field.required, message: 'Please enter input' }]
+                    rules: [{ required: field.required, message: `${$t('message.error.required.input')}` }]
                   }]"
                   :placeholder="field.description"
                 />
@@ -205,7 +273,7 @@
               <span v-else>
                 <a-input
                   v-decorator="[field.name, {
-                    rules: [{ required: field.required, message: 'Please enter input' }]
+                    rules: [{ required: field.required, message: `${$t('message.error.required.input')}` }]
                   }]"
                   :placeholder="field.description" />
               </span>
@@ -215,8 +283,10 @@
       </a-modal>
     </div>
 
-    <div v-if="dataView && !treeView">
+    <div v-if="dataView">
+      <slot v-if="$route.path.startsWith('/quotasummary')"></slot>
       <resource-view
+        v-else
         :resource="resource"
         :loading="loading"
         :tabs="$route.meta.tabs" />
@@ -226,29 +296,25 @@
         :loading="loading"
         :columns="columns"
         :items="items"
-        @refresh="this.fetchData"
-        v-if="!treeView" />
+        ref="listview"
+        @selection-change="onRowSelectionChange"
+        @refresh="this.fetchData" />
       <a-pagination
         class="row-element"
         size="small"
         :current="page"
         :pageSize="pageSize"
         :total="itemCount"
-        :showTotal="total => `Total ${total} items`"
-        :pageSizeOptions="['10', '20', '40', '80', '100', '500']"
+        :showTotal="total => `${$t('label.showing')} ${Math.min(total, 1+((page-1)*pageSize))}-${Math.min(page*pageSize, total)} ${$t('label.of')} ${total} ${$t('label.items')}`"
+        :pageSizeOptions="device === 'desktop' ? ['20', '50', '100', '500'] : ['10', '20', '50', '100', '500']"
         @change="changePage"
         @showSizeChange="changePageSize"
         showSizeChanger
-        showQuickJumper
-        v-if="!treeView" />
-      <tree-view
-        v-if="treeView"
-        :treeData="treeData"
-        :treeSelected="treeSelected"
-        :loading="loading"
-        :tabs="$route.meta.tabs"
-        @change-resource="changeResource"
-        :actionData="actionData"/>
+        showQuickJumper>
+        <template slot="buildOptionText" slot-scope="props">
+          <span>{{ props.value }} / {{ $t('label.page') }}</span>
+        </template>
+      </a-pagination>
     </div>
   </div>
 </template>
@@ -257,7 +323,6 @@
 import { api } from '@/api'
 import { mixinDevice } from '@/utils/mixin.js'
 import { genericCompare } from '@/utils/sort.js'
-import config from '@/config/settings'
 import store from '@/store'
 
 import Breadcrumb from '@/components/widgets/Breadcrumb'
@@ -265,8 +330,8 @@ import ChartCard from '@/components/widgets/ChartCard'
 import Status from '@/components/widgets/Status'
 import ListView from '@/components/view/ListView'
 import ResourceView from '@/components/view/ResourceView'
-import TreeView from '@/components/view/TreeView'
 import ActionButton from '@/components/view/ActionButton'
+import SearchView from '@/components/view/SearchView'
 
 export default {
   name: 'Resource',
@@ -275,9 +340,9 @@ export default {
     ChartCard,
     ResourceView,
     ListView,
-    TreeView,
     Status,
-    ActionButton
+    ActionButton,
+    SearchView
   },
   mixins: [mixinDevice],
   provide: function () {
@@ -285,43 +350,50 @@ export default {
       parentFetchData: this.fetchData,
       parentToggleLoading: this.toggleLoading,
       parentStartLoading: this.startLoading,
-      parentFinishLoading: this.finishLoading
+      parentFinishLoading: this.finishLoading,
+      parentSearch: this.onSearch,
+      parentChangeFilter: this.changeFilter,
+      parentChangeResource: this.changeResource,
+      parentPollActionCompletion: this.pollActionCompletion,
+      parentEditTariffAction: () => {}
     }
   },
   data () {
     return {
       apiName: '',
-      docBase: config.docBase,
       loading: false,
+      actionLoading: false,
       columns: [],
       items: [],
       itemCount: 0,
       page: 1,
       pageSize: 10,
-      searchQuery: '',
       resource: {},
       selectedRowKeys: [],
       currentAction: {},
       showAction: false,
       dataView: false,
-      treeView: false,
+      selectedFilter: '',
+      filters: [],
+      searchFilters: [],
+      searchParams: {},
       actions: [],
-      treeData: [],
-      treeSelected: {},
-      actionData: []
-    }
-  },
-  computed: {
-    hasSelected () {
-      return this.selectedRowKeys.length > 0
+      formModel: {},
+      confirmDirty: false
     }
   },
   beforeCreate () {
     this.form = this.$form.createForm(this)
   },
   mounted () {
+    if (this.device === 'desktop') {
+      this.pageSize = 20
+    }
     this.currentPath = this.$route.fullPath
     this.fetchData()
+    if ('projectid' in this.$route.query) {
+      this.switchProject(this.$route.query.projectid)
+    }
   },
   beforeRouteUpdate (to, from, next) {
     this.currentPath = this.$route.fullPath
@@ -334,20 +406,46 @@ export default {
   watch: {
     '$route' (to, from) {
       if (to.fullPath !== from.fullPath && !to.fullPath.includes('action/')) {
-        this.searchQuery = ''
-        this.page = 1
+        if ('page' in to.query) {
+          this.page = Number(to.query.page)
+          this.pageSize = Number(to.query.pagesize)
+        } else {
+          this.page = 1
+          this.pageSize = (this.device === 'desktop' ? 20 : 10)
+        }
         this.itemCount = 0
         this.fetchData()
+        if ('projectid' in to.query) {
+          this.switchProject(to.query.projectid)
+        }
       }
     },
     '$i18n.locale' (to, from) {
       if (to !== from) {
         this.fetchData()
       }
+    },
+    '$store.getters.metrics' (oldVal, newVal) {
+      this.fetchData()
     }
   },
   methods: {
-    fetchData () {
+    switchProject (projectId) {
+      if (!projectId || !projectId.length || projectId.length !== 36) {
+        return
+      }
+      api('listProjects', { id: projectId, listall: true, details: 'min' }).then(json => {
+        if (!json || !json.listprojectsresponse || !json.listprojectsresponse.project) return
+        const project = json.listprojectsresponse.project[0]
+        this.$store.dispatch('SetProject', project)
+        this.$store.dispatch('ToggleTheme', project.id === undefined ? 'light' : 'dark')
+        this.$message.success(`${this.$t('message.switch.to')} "${project.name}"`)
+        const query = Object.assign({}, this.$route.query)
+        delete query.projectid
+        this.$router.replace({ query })
+      })
+    },
+    fetchData (params = {}) {
       if (this.routeName !== this.$route.name) {
         this.routeName = this.$route.name
         this.items = []
@@ -359,29 +457,44 @@ export default {
       this.actions = []
       this.columns = []
       this.columnKeys = []
-      this.treeData = []
-      this.treeSelected = {}
-      var params = { listall: true }
-      if (Object.keys(this.$route.query).length > 0) {
-        Object.assign(params, this.$route.query)
-      } else if (this.$route.meta.params) {
+      const refreshed = ('irefresh' in params)
+
+      params.listall = true
+      if (this.$route.meta.params) {
         Object.assign(params, this.$route.meta.params)
       }
+      if (Object.keys(this.$route.query).length > 0) {
+        Object.assign(params, this.$route.query)
+      }
+      delete params.q
+      delete params.filter
+      delete params.irefresh
 
-      this.treeView = this.$route && this.$route.meta && this.$route.meta.treeView
+      this.searchFilters = this.$route && this.$route.meta && this.$route.meta.searchFilters
 
       if (this.$route && this.$route.params && this.$route.params.id) {
-        this.resource = {}
         this.dataView = true
-        this.treeView = false
+        if (!refreshed) {
+          this.resource = {}
+          this.$emit('change-resource', this.resource)
+        }
       } else {
         this.dataView = false
+      }
+
+      if ('listview' in this.$refs && this.$refs.listview) {
+        this.$refs.listview.resetSelection()
       }
 
       if (this.$route && this.$route.meta && this.$route.meta.permission) {
         this.apiName = this.$route.meta.permission[0]
         if (this.$route.meta.columns) {
-          this.columnKeys = this.$route.meta.columns
+          const columns = this.$route.meta.columns
+          if (columns && typeof columns === 'function') {
+            this.columnKeys = columns()
+          } else {
+            this.columnKeys = columns
+          }
         }
 
         if (this.$route.meta.actions) {
@@ -391,14 +504,6 @@ export default {
 
       if (this.apiName === '' || this.apiName === undefined) {
         return
-      }
-
-      if (this.searchQuery !== '') {
-        if (this.apiName === 'listRoles') {
-          params.name = this.searchQuery
-        } else {
-          params.keyword = this.searchQuery
-        }
       }
 
       if (!this.columnKeys || this.columnKeys.length === 0) {
@@ -422,11 +527,15 @@ export default {
           customRender[key] = columnKey[key]
         }
         this.columns.push({
-          title: this.$t(key),
+          title: this.$t('label.' + String(key).toLowerCase()),
           dataIndex: key,
           scopedSlots: { customRender: key },
           sorter: function (a, b) { return genericCompare(a[this.dataIndex] || '', b[this.dataIndex] || '') }
         })
+      }
+
+      if (['listTemplates', 'listIsos'].includes(this.apiName) && this.dataView) {
+        delete params.showunique
       }
 
       this.loading = true
@@ -434,20 +543,15 @@ export default {
         params.id = this.$route.params.id
         if (this.$route.path.startsWith('/ssh/')) {
           params.name = this.$route.params.id
+        } else if (this.$route.path.startsWith('/vmsnapshot/')) {
+          params.vmsnapshotid = this.$route.params.id
         } else if (this.$route.path.startsWith('/ldapsetting/')) {
           params.hostname = this.$route.params.id
         }
       }
 
-      if (!this.treeView) {
-        params.page = this.page
-        params.pagesize = this.pageSize
-      } else {
-        const domainId = this.$store.getters.userInfo.domainid
-        params.id = domainId
-        delete params.treeView
-      }
-
+      params.page = this.page
+      params.pagesize = this.pageSize
       api(this.apiName, params).then(json => {
         var responseName
         var objectName
@@ -470,37 +574,37 @@ export default {
         if (!this.items || this.items.length === 0) {
           this.items = []
         }
-        if (this.treeView) {
-          this.treeData = this.generateTreeData(this.items)
-        } else {
-          for (let idx = 0; idx < this.items.length; idx++) {
-            this.items[idx].key = idx
-            for (const key in customRender) {
-              const func = customRender[key]
-              if (func && typeof func === 'function') {
-                this.items[idx][key] = func(this.items[idx])
-              }
+
+        for (let idx = 0; idx < this.items.length; idx++) {
+          this.items[idx].key = idx
+          for (const key in customRender) {
+            const func = customRender[key]
+            if (func && typeof func === 'function') {
+              this.items[idx][key] = func(this.items[idx])
             }
-            if (this.$route.path.startsWith('/ssh')) {
-              this.items[idx].id = this.items[idx].name
-            } else if (this.$route.path.startsWith('/ldapsetting')) {
-              this.items[idx].id = this.items[idx].hostname
-            }
+          }
+          if (this.$route.path.startsWith('/ssh')) {
+            this.items[idx].id = this.items[idx].name
+          } else if (this.$route.path.startsWith('/ldapsetting')) {
+            this.items[idx].id = this.items[idx].hostname
           }
         }
         if (this.items.length > 0) {
           this.resource = this.items[0]
-          this.treeSelected = this.treeView ? this.items[0] : {}
-        } else {
-          this.resource = {}
-          this.treeSelected = {}
+          this.$emit('change-resource', this.resource)
         }
       }).catch(error => {
-        this.$notification.error({
-          message: 'Request Failed',
-          description: error.response.headers['x-description'],
-          duration: 0
-        })
+        if (Object.keys(this.searchParams).length > 0) {
+          this.itemCount = 0
+          this.items = []
+          this.$message.error({
+            content: error.response.headers['x-description'],
+            duration: 5
+          })
+          return
+        }
+
+        this.$notifyError(error)
 
         if ([401, 405].includes(error.response.status)) {
           this.$router.push({ path: '/exception/403' })
@@ -517,18 +621,18 @@ export default {
         this.loading = false
       })
     },
-    onSearch (value) {
-      this.searchQuery = value
-      this.page = 1
-      this.fetchData()
-    },
     closeAction () {
-      this.currentAction.loading = false
+      this.actionLoading = false
       this.showAction = false
       this.currentAction = {}
     },
+    onRowSelectionChange (selection) {
+      this.selectedRowKeys = selection
+    },
     execAction (action) {
-      this.actionData = []
+      const self = this
+      this.form = this.$form.createForm(this)
+      this.formModel = {}
       if (action.component && action.api && !action.popup) {
         this.$router.push({ name: action.api })
         return
@@ -545,12 +649,26 @@ export default {
         return 0
       })
       this.currentAction.paramFields = []
-      if (action.args && action.args.length > 0) {
-        this.currentAction.paramFields = action.args.map(function (arg) {
-          return paramFields.filter(function (param) {
-            return param.name.toLowerCase() === arg.toLowerCase()
-          })[0]
-        })
+      if ('args' in action) {
+        var args = action.args
+        if (typeof action.args === 'function') {
+          args = action.args(action.resource, this.$store.getters)
+        }
+        if (args.length > 0) {
+          this.currentAction.paramFields = args.map(function (arg) {
+            if (arg === 'confirmpassword') {
+              return {
+                type: 'password',
+                name: 'confirmpassword',
+                required: true,
+                description: self.$t('label.confirmpassword.description')
+              }
+            }
+            return paramFields.filter(function (param) {
+              return param.name.toLowerCase() === arg.toLowerCase()
+            })[0]
+          })
+        }
       }
 
       this.showAction = true
@@ -562,8 +680,8 @@ export default {
           this.listUuidOpts(param)
         }
       }
-      this.currentAction.loading = false
-      if (action.dataView && action.icon === 'edit') {
+      this.actionLoading = false
+      if (action.dataView && ['copy', 'edit', 'share-alt'].includes(action.icon)) {
         this.fillEditFormFieldValues()
       }
     },
@@ -572,8 +690,9 @@ export default {
         return
       }
       var paramName = param.name
+      var extractedParamName = paramName.replace('ids', '').replace('id', '').toLowerCase()
       var params = { listall: true }
-      const possibleName = 'list' + paramName.replace('ids', '').replace('id', '').toLowerCase() + 's'
+      const possibleName = 'list' + extractedParamName + 's'
       var possibleApi
       if (this.currentAction.mapping && param.name in this.currentAction.mapping && this.currentAction.mapping[param.name].api) {
         possibleApi = this.currentAction.mapping[param.name].api
@@ -614,6 +733,9 @@ export default {
                 continue
               }
               param.opts = json[obj][res]
+              if (['listTemplates', 'listIsos'].includes(possibleApi)) {
+                param.opts = [...new Map(param.opts.map(x => [x.id, x])).values()]
+              }
               this.$forceUpdate()
               break
             }
@@ -626,16 +748,17 @@ export default {
       }).then(function () {
       })
     },
-    pollActionCompletion (jobId, action) {
+    pollActionCompletion (jobId, action, resourceName) {
       this.$pollJob({
         jobId,
+        name: resourceName,
         successMethod: result => {
           this.fetchData()
           if (action.response) {
             const description = action.response(result.jobresult)
             if (description) {
               this.$notification.info({
-                message: action.label,
+                message: this.$t(action.label),
                 description: (<span domPropsInnerHTML={description}></span>),
                 duration: 0
               })
@@ -643,8 +766,8 @@ export default {
           }
         },
         errorMethod: () => this.fetchData(),
-        loadingMessage: `${this.$t(action.label)} in progress for ${this.resource.name}`,
-        catchMessage: 'Error encountered while fetching async job result',
+        loadingMessage: `${this.$t(action.label)} - ${resourceName}`,
+        catchMessage: this.$t('error.fetching.async.job.result'),
         action
       })
     },
@@ -653,7 +776,7 @@ export default {
       this.currentAction.paramFields.map(field => {
         let fieldValue = null
         let fieldName = null
-        if (field.type === 'uuid' || field.type === 'list' || field.name === 'account' || (this.currentAction.mapping && field.name in this.currentAction.mapping)) {
+        if (field.type === 'list' || field.name === 'account') {
           fieldName = field.name.replace('ids', 'name').replace('id', 'name')
         } else {
           fieldName = field.name
@@ -661,15 +784,39 @@ export default {
         fieldValue = this.resource[fieldName] ? this.resource[fieldName] : null
         if (fieldValue) {
           form.getFieldDecorator(field.name, { initialValue: fieldValue })
+          this.formModel[field.name] = fieldValue
         }
       })
     },
     handleSubmit (e) {
+      if (!this.dataView && this.currentAction.groupAction && this.selectedRowKeys.length > 0) {
+        const paramsList = this.currentAction.groupMap(this.selectedRowKeys)
+        this.actionLoading = true
+        for (const params of paramsList) {
+          api(this.currentAction.api, params).then(json => {
+          }).catch(error => {
+            this.$notifyError(error)
+          })
+        }
+        this.$message.info({
+          content: this.$t(this.currentAction.label),
+          key: this.currentAction.label,
+          duration: 3
+        })
+        setTimeout(() => {
+          this.actionLoading = false
+          this.closeAction()
+          this.fetchData()
+        }, 2000)
+      } else {
+        this.execSubmit(e)
+      }
+    },
+    execSubmit (e) {
       e.preventDefault()
       this.form.validateFields((err, values) => {
         console.log(values)
         if (!err) {
-          this.currentAction.loading = true
           const params = {}
           if ('id' in this.resource && this.currentAction.params.map(i => { return i.name }).includes('id')) {
             params.id = this.resource.id
@@ -677,30 +824,29 @@ export default {
           for (const key in values) {
             const input = values[key]
             for (const param of this.currentAction.params) {
-              if (param.name === key) {
-                if (input === undefined) {
-                  if (param.type === 'boolean') {
-                    params[key] = false
-                  }
-                  break
-                }
-                if (this.currentAction.mapping && key in this.currentAction.mapping && this.currentAction.mapping[key].options) {
-                  params[key] = this.currentAction.mapping[key].options[input]
-                } else if (param.type === 'uuid') {
-                  params[key] = param.opts[input].id
-                } else if (param.type === 'list') {
-                  params[key] = input.map(e => { return param.opts[e].id }).reduce((str, name) => { return str + ',' + name })
-                } else if (param.name === 'account' || param.name === 'keypair') {
-                  if (['addAccountToProject', 'createAccount'].includes(this.currentAction.api)) {
-                    params[key] = input
-                  } else {
-                    params[key] = param.opts[input].name
-                  }
-                } else {
-                  params[key] = input
+              if (param.name !== key) {
+                continue
+              }
+              if (input === undefined || input === null) {
+                if (param.type === 'boolean') {
+                  params[key] = false
                 }
                 break
               }
+              if (this.currentAction.mapping && key in this.currentAction.mapping && this.currentAction.mapping[key].options) {
+                params[key] = this.currentAction.mapping[key].options[input]
+              } else if (param.type === 'list') {
+                params[key] = input.map(e => { return param.opts[e].id }).reduce((str, name) => { return str + ',' + name })
+              } else if (param.name === 'account' || param.name === 'keypair') {
+                if (['addAccountToProject', 'createAccount'].includes(this.currentAction.api)) {
+                  params[key] = input
+                } else {
+                  params[key] = param.opts[input].name
+                }
+              } else {
+                params[key] = input
+              }
+              break
             }
           }
 
@@ -723,27 +869,31 @@ export default {
           console.log(this.resource)
           console.log(params)
 
-          var hasJobId = false
-          api(this.currentAction.api, params).then(json => {
-            // set action data for reload tree-view
-            if (this.treeView) {
-              this.actionData.push(json)
-            }
+          const resourceName = params.displayname || params.displaytext || params.name || params.hostname || params.username || params.ipaddress || params.virtualmachinename || this.resource.name
 
+          var hasJobId = false
+          this.actionLoading = true
+          api(this.currentAction.api, params).then(json => {
             for (const obj in json) {
               if (obj.includes('response')) {
                 for (const res in json[obj]) {
                   if (res === 'jobid') {
-                    this.$store.dispatch('AddAsyncJob', { title: this.$t(this.currentAction.label), jobid: json[obj][res], description: this.resource.name, status: 'progress' })
-                    this.pollActionCompletion(json[obj][res], this.currentAction)
+                    this.$store.dispatch('AddAsyncJob', { title: this.$t(this.currentAction.label), jobid: json[obj][res], description: resourceName, status: 'progress' })
+                    this.pollActionCompletion(json[obj][res], this.currentAction, resourceName)
                     hasJobId = true
                     break
+                  } else {
+                    this.$message.success({
+                      content: this.$t(this.currentAction.label) + (resourceName ? ' - ' + resourceName : ''),
+                      key: this.currentAction.label + resourceName,
+                      duration: 2
+                    })
                   }
                 }
                 break
               }
             }
-            if ((this.currentAction.icon === 'delete' || ['archiveEvents'].includes(this.currentAction.api)) && this.dataView) {
+            if ((this.currentAction.icon === 'delete' || ['archiveEvents', 'archiveAlerts'].includes(this.currentAction.api)) && this.dataView) {
               this.$router.go(-1)
             } else {
               if (!hasJobId) {
@@ -752,25 +902,91 @@ export default {
             }
           }).catch(error => {
             console.log(error)
-            this.$notification.error({
-              message: 'Request Failed',
-              description: (error.response && error.response.headers && error.response.headers['x-description']) || error.message
-            })
+            this.$notifyError(error)
           }).finally(f => {
+            this.actionLoading = false
             this.closeAction()
           })
         }
       })
     },
+    changeFilter (filter) {
+      const query = Object.assign({}, this.$route.query)
+      delete query.templatefilter
+      delete query.isofilter
+      delete query.account
+      delete query.domainid
+      delete query.state
+      if (this.$route.name === 'template') {
+        query.templatefilter = filter
+      } else if (this.$route.name === 'iso') {
+        query.isofilter = filter
+      } else if (this.$route.name === 'vm') {
+        if (filter === 'self') {
+          query.account = this.$store.getters.userInfo.account
+          query.domainid = this.$store.getters.userInfo.domainid
+        } else if (['running', 'stopped'].includes(filter)) {
+          query.state = filter
+        }
+      }
+      query.filter = filter
+      query.page = 1
+      query.pagesize = this.pageSize
+      this.$router.push({ query })
+    },
+    onSearch (opts) {
+      const query = Object.assign({}, this.$route.query)
+      for (const key in this.searchParams) {
+        delete query[key]
+      }
+      delete query.name
+      delete query.templatetype
+      delete query.keyword
+      delete query.q
+      this.searchParams = {}
+      if (opts && Object.keys(opts).length > 0) {
+        this.searchParams = opts
+        if ('searchQuery' in opts) {
+          const value = opts.searchQuery
+          if (value && value.length > 0) {
+            if (this.$route.name === 'role') {
+              query.name = value
+            } else if (this.$route.name === 'quotaemailtemplate') {
+              query.templatetype = value
+            } else if (this.$route.name === 'globalsetting') {
+              query.name = value
+            } else {
+              query.keyword = value
+            }
+            query.q = value
+          }
+          this.searchParams = {}
+        } else {
+          Object.assign(query, opts)
+        }
+      }
+      query.page = 1
+      query.pagesize = this.pageSize
+      if (JSON.stringify(query) === JSON.stringify(this.$route.query)) {
+        this.fetchData(query)
+        return
+      }
+      this.$router.push({ query })
+    },
     changePage (page, pageSize) {
-      this.page = page
-      this.pageSize = pageSize
-      this.fetchData()
+      const query = Object.assign({}, this.$route.query)
+      query.page = page
+      query.pagesize = pageSize
+      this.$router.push({ query })
     },
     changePageSize (currentPage, pageSize) {
-      this.page = currentPage
-      this.pageSize = pageSize
-      this.fetchData()
+      const query = Object.assign({}, this.$route.query)
+      query.page = currentPage
+      query.pagesize = pageSize
+      this.$router.push({ query })
+    },
+    changeResource (resource) {
+      this.resource = resource
     },
     start () {
       this.loading = true
@@ -780,24 +996,6 @@ export default {
         this.selectedRowKeys = []
       }, 1000)
     },
-    generateTreeData (treeData) {
-      const result = []
-      const rootItem = treeData
-
-      rootItem[0].title = rootItem[0].title ? rootItem[0].title : rootItem[0].name
-      rootItem[0].key = rootItem[0].id ? rootItem[0].id : 0
-
-      if (!rootItem[0].haschild) {
-        rootItem[0].isLeaf = true
-      }
-
-      result.push(rootItem[0])
-      return result
-    },
-    changeResource (resource) {
-      this.treeSelected = resource
-      this.resource = this.treeSelected
-    },
     toggleLoading () {
       this.loading = !this.loading
     },
@@ -806,6 +1004,40 @@ export default {
     },
     finishLoading () {
       this.loading = false
+    },
+    handleConfirmBlur (e, name) {
+      if (name !== 'confirmpassword') {
+        return
+      }
+      const value = e.target.value
+      this.confirmDirty = this.confirmDirty || !!value
+    },
+    validateTwoPassword (rule, value, callback) {
+      if (!value || value.length === 0) {
+        callback()
+      } else if (rule.field === 'confirmpassword') {
+        const form = this.form
+        const messageConfirm = this.$t('message.validate.equalto')
+        const passwordVal = form.getFieldValue('password')
+        if (passwordVal && passwordVal !== value) {
+          callback(messageConfirm)
+        } else {
+          callback()
+        }
+      } else if (rule.field === 'password') {
+        const form = this.form
+        const confirmPasswordVal = form.getFieldValue('confirmpassword')
+        if (!confirmPasswordVal || confirmPasswordVal.length === 0) {
+          callback()
+        } else if (value && this.confirmDirty) {
+          form.validateFields(['confirmpassword'], { force: true })
+          callback()
+        } else {
+          callback()
+        }
+      } else {
+        callback()
+      }
     }
   }
 }
@@ -827,9 +1059,5 @@ export default {
 
 .ant-breadcrumb {
   vertical-align: text-bottom;
-}
-
-.ant-breadcrumb .anticon {
-  margin-left: 8px;
 }
 </style>

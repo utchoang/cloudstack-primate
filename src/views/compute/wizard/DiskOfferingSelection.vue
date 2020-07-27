@@ -19,23 +19,22 @@
   <div>
     <a-input-search
       style="width: 25vw;float: right;margin-bottom: 10px; z-index: 8"
-      placeholder="Search"
+      :placeholder="$t('label.search')"
       v-model="filter"
       @search="handleSearch" />
     <a-table
       :loading="loading"
       :columns="columns"
       :dataSource="tableSource"
-      :pagination="{showSizeChanger: true}"
+      :pagination="false"
       :rowSelection="rowSelection"
       size="middle"
-      @change="handleTableChange"
       :scroll="{ y: 225 }"
     >
-      <span slot="diskSizeTitle"><a-icon type="hdd" /> {{ $t('disksize') }}</span>
-      <span slot="iopsTitle"><a-icon type="rocket" /> {{ $t('minMaxIops') }}</span>
+      <span slot="diskSizeTitle"><a-icon type="hdd" /> {{ $t('label.disksize') }}</span>
+      <span slot="iopsTitle"><a-icon type="rocket" /> {{ $t('label.minmaxiops') }}</span>
       <template slot="diskSize" slot-scope="text, record">
-        <div v-if="record.isCustomized">{{ $t('isCustomized') }}</div>
+        <div v-if="record.isCustomized">{{ $t('label.iscustomized') }}</div>
         <div v-else-if="record.diskSize">{{ record.diskSize }} GB</div>
         <div v-else>-</div>
       </template>
@@ -46,6 +45,23 @@
         <span v-else>-</span>
       </template>
     </a-table>
+
+    <div style="display: block; text-align: right;">
+      <a-pagination
+        size="small"
+        :current="options.page"
+        :pageSize="options.pageSize"
+        :total="rowCount"
+        :showTotal="total => `${$t('label.total')} ${total} ${$t('label.items')}`"
+        :pageSizeOptions="['10', '20', '40', '80', '100', '500']"
+        @change="onChangePage"
+        @showSizeChange="onChangePageSize"
+        showSizeChanger>
+        <template slot="buildOptionText" slot-scope="props">
+          <span>{{ props.value }} / {{ $t('label.page') }}</span>
+        </template>
+      </a-pagination>
+    </div>
   </div>
 </template>
 
@@ -57,11 +73,27 @@ export default {
       type: Array,
       default: () => []
     },
+    rowCount: {
+      type: Number,
+      default: () => 0
+    },
     value: {
       type: String,
       default: ''
     },
     loading: {
+      type: Boolean,
+      default: false
+    },
+    preFillContent: {
+      type: Object,
+      default: () => {}
+    },
+    zoneId: {
+      type: String,
+      default: () => ''
+    },
+    isIsoSelected: {
       type: Boolean,
       default: false
     }
@@ -72,7 +104,7 @@ export default {
       columns: [
         {
           dataIndex: 'name',
-          title: this.$t('diskoffering'),
+          title: this.$t('label.diskoffering'),
           width: '40%'
         },
         {
@@ -89,28 +121,19 @@ export default {
         }
       ],
       selectedRowKeys: ['0'],
-      dataItems: []
+      dataItems: [],
+      oldZoneId: null,
+      options: {
+        page: 1,
+        pageSize: 10,
+        keyword: null
+      }
     }
   },
   created () {
-    this.dataItems = []
-    this.dataItems.push({
-      id: '0',
-      name: this.$t('noselect'),
-      diskSize: undefined,
-      miniops: undefined,
-      maxiops: undefined,
-      isCustomized: undefined
-    })
+    this.initDataItem()
   },
   computed: {
-    options () {
-      return {
-        page: 1,
-        pageSize: 10,
-        keyword: ''
-      }
-    },
     tableSource () {
       return this.dataItems.map((item) => {
         return {
@@ -138,24 +161,72 @@ export default {
       }
     },
     items (newData, oldData) {
-      if (newData && newData.length > 0) {
-        this.dataItems = this.dataItems.concat(newData)
+      this.initDataItem()
+      this.dataItems = this.dataItems.concat(newData)
+    },
+    loading () {
+      if (!this.loading) {
+        if (this.preFillContent.diskofferingid) {
+          this.selectedRowKeys = [this.preFillContent.diskofferingid]
+          this.$emit('select-disk-offering-item', this.preFillContent.diskofferingid)
+        } else {
+          if (this.oldZoneId === this.zoneId) {
+            return
+          }
+          this.oldZoneId = this.zoneId
+          this.selectedRowKeys = ['0']
+          this.$emit('select-disk-offering-item', '0')
+        }
+      }
+    },
+    isIsoSelected () {
+      if (this.isIsoSelected) {
+        this.dataItems = this.dataItems.filter(item => item.id !== '0')
+      } else {
+        this.dataItems.unshift({
+          id: '0',
+          name: this.$t('label.noselect'),
+          diskSize: undefined,
+          miniops: undefined,
+          maxiops: undefined,
+          isCustomized: undefined
+        })
       }
     }
   },
   methods: {
+    initDataItem () {
+      this.dataItems = []
+      if (this.options.page === 1 && !this.isIsoSelected) {
+        this.dataItems.push({
+          id: '0',
+          name: this.$t('label.noselect'),
+          diskSize: undefined,
+          miniops: undefined,
+          maxiops: undefined,
+          isCustomized: undefined
+        })
+      }
+    },
     onSelectRow (value) {
       this.selectedRowKeys = value
       this.$emit('select-disk-offering-item', value[0])
     },
     handleSearch (value) {
       this.filter = value
+      this.options.page = 1
+      this.options.pageSize = 10
       this.options.keyword = this.filter
       this.$emit('handle-search-filter', this.options)
     },
-    handleTableChange (pagination) {
-      this.options.page = pagination.current
-      this.options.pageSize = pagination.pageSize
+    onChangePage (page, pageSize) {
+      this.options.page = page
+      this.options.pageSize = pageSize
+      this.$emit('handle-search-filter', this.options)
+    },
+    onChangePageSize (page, pageSize) {
+      this.options.page = page
+      this.options.pageSize = pageSize
       this.$emit('handle-search-filter', this.options)
     }
   }

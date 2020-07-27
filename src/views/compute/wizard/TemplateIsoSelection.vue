@@ -19,24 +19,28 @@
   <div>
     <a-input-search
       class="search-input"
-      placeholder="Search"
+      :placeholder="$t('label.search')"
       v-model="filter"
-      @search="filterDataSource"/>
+      @search="filterDataSource">
+    </a-input-search>
     <a-spin :spinning="loading">
       <a-tabs
-        tabPosition="top"
         :animated="false"
-        :defaultActiveKey="Object.keys(dataSource)[0]">
-        <a-tab-pane v-for="(osList, osName) in dataSource" :key="osName">
-          <span slot="tab">
-            <os-logo :os-name="osName"></os-logo>
-          </span>
+        :defaultActiveKey="Object.keys(dataSource)[0]"
+        v-model="filterType"
+        tabPosition="top"
+        @change="changeFilterType">
+        <a-tab-pane
+          v-for="filterItem in filterOpts"
+          :key="filterItem.id"
+          :tab="$t(filterItem.name)">
           <TemplateIsoRadioGroup
-            :osType="osName"
-            :osList="dataSource[osName]"
+            v-if="filterType===filterItem.id"
+            :osList="dataSource[filterItem.id]"
+            :itemCount="itemCount[filterItem.id]"
             :input-decorator="inputDecorator"
             :selected="checkedValue"
-            :itemCount="itemCount[osName]"
+            :preFillContent="preFillContent"
             @handle-filter-tag="filterDataSource"
             @emit-update-template-iso="updateTemplateIso"
           ></TemplateIsoRadioGroup>
@@ -47,15 +51,13 @@
 </template>
 
 <script>
-import OsLogo from '@/components/widgets/OsLogo'
 import { getNormalizedOsName } from '@/utils/icons'
-import _ from 'lodash'
 import TemplateIsoRadioGroup from '@views/compute/wizard/TemplateIsoRadioGroup'
 import store from '@/store'
 
 export default {
   name: 'TemplateIsoSelection',
-  components: { TemplateIsoRadioGroup, OsLogo },
+  components: { TemplateIsoRadioGroup },
   props: {
     items: {
       type: Array,
@@ -72,6 +74,10 @@ export default {
     loading: {
       type: Boolean,
       default: false
+    },
+    preFillContent: {
+      type: Object,
+      default: () => {}
     }
   },
   data () {
@@ -80,7 +86,24 @@ export default {
       filteredItems: this.items,
       checkedValue: '',
       dataSource: {},
-      itemCount: {}
+      itemCount: {},
+      visibleFilter: false,
+      filterOpts: [{
+        id: 'featured',
+        name: 'label.featured'
+      }, {
+        id: 'community',
+        name: 'label.community'
+      }, {
+        id: 'selfexecutable',
+        name: 'label.my.templates'
+      }, {
+        id: 'sharedexecutable',
+        name: 'label.sharedexecutable'
+      }],
+      osType: '',
+      filterType: '',
+      oldInputDecorator: ''
     }
   },
   watch: {
@@ -92,38 +115,56 @@ export default {
         this.checkedValue = items[0].id
       }
       this.dataSource = this.mappingDataSource()
+      this.filterType = Object.keys(this.dataSource)[0]
     },
     inputDecorator (newValue, oldValue) {
       if (newValue !== oldValue) {
+        this.oldInputDecorator = this.inputDecorator
         this.filter = ''
       }
     }
   },
+  beforeCreate () {
+    this.form = this.$form.createForm(this)
+  },
   methods: {
     mappingDataSource () {
-      let mappedItems = {}
-      const itemCount = {}
+      const mappedItems = {
+        featured: [],
+        community: [],
+        selfexecutable: [],
+        sharedexecutable: []
+      }
+      const itemCount = {
+        featured: 0,
+        community: 0,
+        selfexecutable: 0,
+        sharedexecutable: 0
+      }
       this.filteredItems.forEach((os) => {
-        const osName = getNormalizedOsName(os.ostypename)
-        if (Array.isArray(mappedItems[osName])) {
-          mappedItems[osName].push(os)
-          itemCount[osName] = itemCount[osName] + 1
+        os.osName = getNormalizedOsName(os.ostypename)
+        if (os.isPublic && os.isfeatured) {
+          mappedItems.community.push(os)
+          itemCount.community = itemCount.community + 1
+        } else if (os.isfeatured) {
+          mappedItems.featured.push(os)
+          itemCount.featured = itemCount.featured + 1
         } else {
-          mappedItems[osName] = [os]
-          itemCount[osName] = 1
+          const isSelf = !os.ispublic && (os.account === store.getters.userInfo.account)
+          if (isSelf) {
+            mappedItems.selfexecutable.push(os)
+            itemCount.selfexecutable = itemCount.selfexecutable + 1
+          } else {
+            mappedItems.sharedexecutable.push(os)
+            itemCount.sharedexecutable = itemCount.sharedexecutable + 1
+          }
         }
-      })
-      mappedItems = _.mapValues(mappedItems, (list) => {
-        let featuredItems = list.filter((item) => item.isfeatured)
-        let nonFeaturedItems = list.filter((item) => !item.isfeatured)
-        featuredItems = _.sortBy(featuredItems, (item) => item.displaytext.toLowerCase())
-        nonFeaturedItems = _.sortBy(nonFeaturedItems, (item) => item.displaytext.toLowerCase())
-        return featuredItems.concat(nonFeaturedItems) // pin featured isos/templates at the top
       })
       this.itemCount = itemCount
       return mappedItems
     },
     updateTemplateIso (name, id) {
+      this.checkedValue = id
       this.$emit('update-template-iso', name, id)
     },
     filterDataSource (strQuery) {
@@ -164,6 +205,33 @@ export default {
       }
 
       return arrResult
+    },
+    handleSubmit (e) {
+      e.preventDefault()
+      this.form.validateFields((err, values) => {
+        if (err) {
+          return
+        }
+        const filtered = values.filter || []
+        this.filter = ''
+        filtered.map(item => {
+          if (this.filter.length === 0) {
+            this.filter += 'is:' + item
+          } else {
+            this.filter += '; is:' + item
+          }
+        })
+        this.filterDataSource(this.filter)
+      })
+    },
+    onClear () {
+      const field = { filter: undefined }
+      this.form.setFieldsValue(field)
+      this.filter = ''
+      this.filterDataSource('')
+    },
+    changeFilterType (value) {
+      this.filterType = value
     }
   }
 }

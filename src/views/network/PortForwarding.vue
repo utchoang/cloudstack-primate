@@ -20,11 +20,11 @@
     <div>
       <div class="form">
         <div class="form__item">
-          <div class="form__label">{{ $t('privateport') }}</div>
+          <div class="form__label">{{ $t('label.privateport') }}</div>
           <a-input-group class="form__item__input-container" compact>
             <a-input
               v-model="newRule.privateport"
-              placeholder="Start"
+              :placeholder="$t('label.start')"
               style="border-right: 0; width: 60px; margin-right: 0;"></a-input>
             <a-input
               placeholder="-"
@@ -33,16 +33,16 @@
               center; margin-right: 0;"></a-input>
             <a-input
               v-model="newRule.privateendport"
-              placeholder="End"
+              :placeholder="$t('label.end')"
               style="border-left: 0; width: 60px; text-align: right; margin-right: 0;"></a-input>
           </a-input-group>
         </div>
         <div class="form__item">
-          <div class="form__label">{{ $t('publicport') }}</div>
+          <div class="form__label">{{ $t('label.publicport') }}</div>
           <a-input-group class="form__item__input-container" compact>
             <a-input
               v-model="newRule.publicport"
-              placeholder="Start"
+              :placeholder="$t('label.start')"
               style="border-right: 0; width: 60px; margin-right: 0;"></a-input>
             <a-input
               placeholder="-"
@@ -51,20 +51,20 @@
               text-align: center; margin-right: 0;"></a-input>
             <a-input
               v-model="newRule.publicendport"
-              placeholder="End"
+              :placeholder="$t('label.end')"
               style="border-left: 0; width: 60px; text-align: right; margin-right: 0;"></a-input>
           </a-input-group>
         </div>
         <div class="form__item">
-          <div class="form__label">{{ $t('protocol') }}</div>
+          <div class="form__label">{{ $t('label.protocol') }}</div>
           <a-select v-model="newRule.protocol" style="width: 100%;">
-            <a-select-option value="tcp">{{ $t('tcp') }}</a-select-option>
-            <a-select-option value="udp">{{ $t('udp') }}</a-select-option>
+            <a-select-option value="tcp">{{ $t('label.tcp') }}</a-select-option>
+            <a-select-option value="udp">{{ $t('label.udp') }}</a-select-option>
           </a-select>
         </div>
         <div class="form__item" style="margin-left: auto;">
-          <div class="form__label">{{ $t('label.add.VM') }}</div>
-          <a-button type="primary" @click="openAddVMModal">{{ $t('add') }}</a-button>
+          <div class="form__label">{{ $t('label.add.vm') }}</div>
+          <a-button :disabled="!('createPortForwardingRule' in $store.getters.apis)" type="primary" @click="openAddVMModal">{{ $t('label.add') }}</a-button>
         </div>
       </div>
     </div>
@@ -96,8 +96,14 @@
       </template>
       <template slot="actions" slot-scope="record">
         <div class="actions">
-          <a-button shape="round" icon="tag" class="rule-action" @click="() => openTagsModal(record.id)" />
-          <a-button shape="round" type="danger" icon="delete" class="rule-action" @click="deleteRule(record)" />
+          <a-button shape="circle" icon="tag" class="rule-action" @click="() => openTagsModal(record.id)" />
+          <a-button
+            shape="circle"
+            type="danger"
+            icon="delete"
+            class="rule-action"
+            :disabled="!('deletePortForwardingRule' in $store.getters.apis)"
+            @click="deleteRule(record)" />
         </div>
       </template>
     </a-table>
@@ -107,24 +113,28 @@
       :current="page"
       :pageSize="pageSize"
       :total="totalCount"
-      :showTotal="total => `Total ${total} items`"
+      :showTotal="total => `${$t('label.total')} ${total} ${$t('label.items')}`"
       :pageSizeOptions="['10', '20', '40', '80', '100']"
       @change="handleChangePage"
       @showSizeChange="handleChangePageSize"
-      showSizeChanger/>
+      showSizeChanger>
+      <template slot="buildOptionText" slot-scope="props">
+        <span>{{ props.value }} / {{ $t('label.page') }}</span>
+      </template>
+    </a-pagination>
 
-    <a-modal title="Edit Tags" v-model="tagsModalVisible" :footer="null" :afterClose="closeModal">
+    <a-modal :title="$t('label.edit.tags')" v-model="tagsModalVisible" :footer="null" :afterClose="closeModal">
       <span v-show="tagsModalLoading" class="tags-modal-loading">
         <a-icon type="loading"></a-icon>
       </span>
 
       <div class="add-tags">
         <div class="add-tags__input">
-          <p class="add-tags__label">{{ $t('key') }}</p>
+          <p class="add-tags__label">{{ $t('label.key') }}</p>
           <a-input v-model="newTag.key"></a-input>
         </div>
         <div class="add-tags__input">
-          <p class="add-tags__label">{{ $t('value') }}</p>
+          <p class="add-tags__label">{{ $t('label.value') }}</p>
           <a-input v-model="newTag.value"></a-input>
         </div>
         <a-button type="primary" @click="() => handleAddTag()">{{ $t('label.add') }}</a-button>
@@ -140,11 +150,11 @@
         </div>
       </div>
 
-      <a-button class="add-tags-done" @click="tagsModalVisible = false" type="primary">{{ $t('done') }}</a-button>
+      <a-button class="add-tags-done" @click="tagsModalVisible = false" type="primary">{{ $t('label.done') }}</a-button>
     </a-modal>
 
     <a-modal
-      title="Add VM"
+      :title="$t('label.add.vm')"
       v-model="addVmModalVisible"
       class="vm-modal"
       width="60vw"
@@ -153,57 +163,89 @@
         {disabled: newRule.virtualmachineid === null } }"
       @cancel="closeModal"
     >
-
-      <a-icon v-if="addVmModalLoading" type="loading"></a-icon>
-
-      <div v-else>
-        <div class="vm-modal__header">
-          <span style="min-width: 200px;">{{ $t('name') }}</span>
-          <span>{{ $t('instancename') }}</span>
-          <span>{{ $t('displayname') }}</span>
-          <span>{{ $t('ip') }}</span>
-          <span>{{ $t('account') }}</span>
-          <span>{{ $t('zone') }}</span>
-          <span>{{ $t('state') }}</span>
-          <span>{{ $t('select') }}</span>
-        </div>
-
-        <a-radio-group v-model="newRule.virtualmachineid" style="width: 100%;" @change="fetchNics">
-          <div v-for="(vm, index) in vms" :key="index" class="vm-modal__item">
-
-            <span style="min-width: 200px;">
-              <span>
-                {{ vm.name }}
-              </span>
-              <a-icon v-if="addVmModalNicLoading" type="loading"></a-icon>
-              <a-select
-                v-else-if="!addVmModalNicLoading && newRule.virtualmachineid === vm.id"
-                v-model="newRule.vmguestip">
-                <a-select-option v-for="(nic, nicIndex) in nics" :key="nic" :value="nic">
-                  {{ nic }}{{ nicIndex === 0 ? ' (Primary)' : null }}
-                </a-select-option>
-              </a-select>
+      <div>
+        <span
+          v-if="'vpcid' in resource && !('associatednetworkid' in resource)">
+          <strong>{{ $t('label.select.tier') }} </strong>
+          <a-select
+            v-model="selectedTier"
+            @change="fetchVirtualMachines()"
+            :placeholder="$t('label.select.tier')" >
+            <a-select-option
+              v-for="tier in tiers.data"
+              :loading="tiers.loading"
+              :key="tier.id">
+              {{ tier.displaytext }}
+            </a-select-option>
+          </a-select>
+        </span>
+        <a-input-search
+          class="input-search"
+          :placeholder="$t('label.search')"
+          v-model="searchQuery"
+          allowClear
+          @search="onSearch" />
+        <a-table
+          size="small"
+          class="list-view"
+          :loading="addVmModalLoading"
+          :columns="vmColumns"
+          :dataSource="vms"
+          :pagination="false"
+          :rowKey="record => record.id"
+          :scroll="{ y: 300 }">
+          <div slot="name" slot-scope="text, record">
+            <span>
+              {{ text }}
             </span>
-            <span>{{ vm.instancename }}</span>
-            <span>{{ vm.displayname }}</span>
-            <span></span>
-            <span>{{ vm.account }}</span>
-            <span>{{ vm.zonename }}</span>
-            <span>{{ vm.state }}</span>
-            <a-radio :value="vm.id" />
+            <a-icon v-if="addVmModalNicLoading" type="loading"></a-icon>
+            <a-select
+              style="display: block"
+              v-else-if="!addVmModalNicLoading && newRule.virtualmachineid === record.id"
+              v-model="newRule.vmguestip"
+            >
+              <a-select-option v-for="(nic, nicIndex) in nics" :key="nic" :value="nic">
+                {{ nic }}{{ nicIndex === 0 ? ` (${this.$t('label.primary')})` : null }}
+              </a-select-option>
+            </a-select>
           </div>
-        </a-radio-group>
+
+          <div slot="state" slot-scope="text">
+            <status :text="text ? text : ''" displayText></status>
+          </div>
+
+          <div slot="action" slot-scope="text, record" style="text-align: center">
+            <a-radio :value="record.id" @change="e => fetchNics(e)" />
+          </div>
+        </a-table>
+        <a-pagination
+          class="pagination"
+          size="small"
+          :current="vmPage"
+          :pageSize="vmPageSize"
+          :total="vmCount"
+          :showTotal="total => `${$t('label.total')} ${total} ${$t('label.items')}`"
+          :pageSizeOptions="['10', '20', '40', '80', '100']"
+          @change="handleChangePage"
+          @showSizeChange="handleChangePageSize"
+          showSizeChanger>
+          <template slot="buildOptionText" slot-scope="props">
+            <span>{{ props.value }} / {{ $t('label.page') }}</span>
+          </template>
+        </a-pagination>
       </div>
-
     </a-modal>
-
   </div>
 </template>
 
 <script>
 import { api } from '@/api'
+import Status from '@/components/widgets/Status'
 
 export default {
+  components: {
+    Status
+  },
   props: {
     resource: {
       type: Object,
@@ -227,6 +269,7 @@ export default {
       },
       tagsModalVisible: false,
       selectedRule: null,
+      selectedTier: null,
       tags: [],
       newTag: {
         key: null,
@@ -243,30 +286,74 @@ export default {
       pageSize: 10,
       columns: [
         {
-          title: this.$t('privateport'),
+          title: this.$t('label.privateport'),
           scopedSlots: { customRender: 'privateport' }
         },
         {
-          title: this.$t('publicport'),
+          title: this.$t('label.publicport'),
           scopedSlots: { customRender: 'publicport' }
         },
         {
-          title: this.$t('protocol'),
+          title: this.$t('label.protocol'),
           scopedSlots: { customRender: 'protocol' }
         },
         {
-          title: this.$t('state'),
+          title: this.$t('label.state'),
           dataIndex: 'state'
         },
         {
-          title: this.$t('vm'),
+          title: this.$t('label.vm'),
           scopedSlots: { customRender: 'vm' }
         },
         {
-          title: this.$t('action'),
+          title: this.$t('label.action'),
           scopedSlots: { customRender: 'actions' }
         }
-      ]
+      ],
+      tiers: {
+        loading: false,
+        data: []
+      },
+      vmColumns: [
+        {
+          title: this.$t('label.name'),
+          dataIndex: 'name',
+          scopedSlots: { customRender: 'name' },
+          width: 210
+        },
+        {
+          title: this.$t('label.state'),
+          dataIndex: 'state',
+          scopedSlots: { customRender: 'state' }
+        },
+        {
+          title: this.$t('label.displayname'),
+          dataIndex: 'displayname'
+        },
+        {
+          title: this.$t('label.ip'),
+          dataIndex: 'ip',
+          width: 100
+        },
+        {
+          title: this.$t('label.account'),
+          dataIndex: 'account'
+        },
+        {
+          title: this.$t('label.zone'),
+          dataIndex: 'zonename'
+        },
+        {
+          title: this.$t('label.select'),
+          dataIndex: 'action',
+          scopedSlots: { customRender: 'action' },
+          width: 80
+        }
+      ],
+      vmPage: 1,
+      vmPageSize: 10,
+      vmCount: 0,
+      searchQuery: null
     }
   },
   mounted () {
@@ -283,12 +370,34 @@ export default {
   },
   filters: {
     capitalise: val => {
-      if (val === 'all') return 'All'
+      if (val === 'all') return this.$t('label.all')
       return val.toUpperCase()
     }
   },
   methods: {
     fetchData () {
+      this.fetchListTiers()
+      this.fetchPFRules()
+    },
+    fetchListTiers () {
+      if ('vpcid' in this.resource && 'associatednetworkid' in this.resource) {
+        return
+      }
+      this.tiers.loading = true
+      api('listNetworks', {
+        account: this.resource.account,
+        domainid: this.resource.domainid,
+        supportedservices: 'PortForwarding',
+        vpcid: this.resource.vpcid
+      }).then(json => {
+        this.tiers.data = json.listnetworksresponse.network || []
+        this.selectedTier = this.tiers.data && this.tiers.data[0].id ? this.tiers.data[0].id : null
+        this.$forceUpdate()
+      }).catch(error => {
+        this.$notifyError(error)
+      }).finally(() => { this.tiers.loading = false })
+    },
+    fetchPFRules () {
       this.loading = true
       api('listPortForwardingRules', {
         listAll: true,
@@ -299,10 +408,7 @@ export default {
         this.portForwardRules = response.listportforwardingrulesresponse.portforwardingrule || []
         this.totalCount = response.listportforwardingrulesresponse.count || 0
       }).catch(error => {
-        this.$notification.error({
-          message: `Error ${error.response.status}`,
-          description: error.response.data.errorresponse.errortext
-        })
+        this.$notifyError(error)
       }).finally(() => {
         this.loading = false
       })
@@ -312,54 +418,51 @@ export default {
       api('deletePortForwardingRule', { id: rule.id }).then(response => {
         this.$pollJob({
           jobId: response.deleteportforwardingruleresponse.jobid,
-          successMessage: `Successfully removed Port Forwarding rule`,
+          successMessage: this.$t('message.success.remove.port.forward'),
           successMethod: () => this.fetchData(),
-          errorMessage: 'Removing Port Forwarding rule failed',
+          errorMessage: this.$t('message.remove.port.forward.failed'),
           errorMethod: () => this.fetchData(),
-          loadingMessage: `Deleting Port Forwarding rule...`,
-          catchMessage: 'Error encountered while fetching async job result',
+          loadingMessage: this.$t('message.delete.port.forward.processing'),
+          catchMessage: this.$t('error.fetching.async.job.result'),
           catchMethod: () => this.fetchData()
         })
       }).catch(error => {
-        this.$notification.error({
-          message: `Error ${error.response.status}`,
-          description: error.response.data.errorresponse.errortext
-        })
+        this.$notifyError(error)
         this.fetchData()
       })
     },
     addRule () {
       this.loading = true
       this.addVmModalVisible = false
+      const networkId = ('vpcid' in this.resource && !('associatednetworkid' in this.resource)) ? this.selectedTier : this.resource.associatednetworkid
       api('createPortForwardingRule', {
         ...this.newRule,
         ipaddressid: this.resource.id,
-        networkid: this.resource.associatednetworkid
+        networkid: networkId
       }).then(response => {
         this.$pollJob({
           jobId: response.createportforwardingruleresponse.jobid,
-          successMessage: `Successfully added new Port Forwarding rule`,
+          successMessage: this.$t('message.success.add.port.forward'),
           successMethod: () => {
             this.closeModal()
+            this.parentFetchData()
             this.fetchData()
           },
-          errorMessage: 'Adding new Port Forwarding rule failed',
+          errorMessage: this.$t('message.add.port.forward.failed'),
           errorMethod: () => {
             this.closeModal()
+            this.parentFetchData()
             this.fetchData()
           },
-          loadingMessage: `Adding new Port Forwarding rule...`,
-          catchMessage: 'Error encountered while fetching async job result',
+          loadingMessage: this.$t('message.add.port.forward.processing'),
+          catchMessage: this.$t('error.fetching.async.job.result'),
           catchMethod: () => {
             this.closeModal()
             this.fetchData()
           }
         })
       }).catch(error => {
-        this.$notification.error({
-          message: `Error ${error.response.status}`,
-          description: error.response.data.createportforwardingruleresponse.errortext
-        })
+        this.$notifyError(error)
         this.closeModal()
         this.fetchData()
       })
@@ -403,10 +506,7 @@ export default {
         this.tags = response.listtagsresponse.tag
         this.tagsModalLoading = false
       }).catch(error => {
-        this.$notification.error({
-          message: `Error ${error.response.status}`,
-          description: error.response.data.errorresponse.errortext
-        })
+        this.$notifyError(error)
         this.closeModal()
       })
     },
@@ -420,20 +520,20 @@ export default {
       }).then(response => {
         this.$pollJob({
           jobId: response.createtagsresponse.jobid,
-          successMessage: `Successfully added tag`,
+          successMessage: this.$t('message.success.add.tag'),
           successMethod: () => {
             this.parentFetchData()
             this.parentToggleLoading()
             this.openTagsModal(this.selectedRule)
           },
-          errorMessage: 'Failed to add new tag',
+          errorMessage: this.$t('message.add.tag.failed'),
           errorMethod: () => {
             this.parentFetchData()
             this.parentToggleLoading()
             this.closeModal()
           },
-          loadingMessage: `Adding tag...`,
-          catchMessage: 'Error encountered while fetching async job result',
+          loadingMessage: this.$t('message.add.tag.processing'),
+          catchMessage: this.$t('error.fetching.async.job.result'),
           catchMethod: () => {
             this.parentFetchData()
             this.parentToggleLoading()
@@ -441,10 +541,7 @@ export default {
           }
         })
       }).catch(error => {
-        this.$notification.error({
-          message: `Error ${error.response.status}`,
-          description: error.response.data.createtagsresponse.errortext
-        })
+        this.$notifyError(error)
         this.closeModal()
       })
     },
@@ -458,20 +555,20 @@ export default {
       }).then(response => {
         this.$pollJob({
           jobId: response.deletetagsresponse.jobid,
-          successMessage: `Successfully removed tag`,
+          successMessage: this.$t('message.success.delete.tag'),
           successMethod: () => {
             this.parentFetchData()
             this.parentToggleLoading()
             this.openTagsModal(this.selectedRule)
           },
-          errorMessage: 'Failed to remove tag',
+          errorMessage: this.$t('message.delete.tag.failed'),
           errorMethod: () => {
             this.parentFetchData()
             this.parentToggleLoading()
             this.closeModal()
           },
-          loadingMessage: `Removing tag...`,
-          catchMessage: 'Error encountered while fetching async job result',
+          loadingMessage: this.$t('message.delete.tag.processing'),
+          catchMessage: this.$t('error.fetching.async.job.result'),
           catchMethod: () => {
             this.parentFetchData()
             this.parentToggleLoading()
@@ -479,39 +576,20 @@ export default {
           }
         })
       }).catch(error => {
-        this.$notification.error({
-          message: `Error ${error.response.status}`,
-          description: error.response.data.deletetagsresponse.errortext
-        })
+        this.$notifyError(error)
         this.closeModal()
       })
     },
     openAddVMModal () {
       this.addVmModalVisible = true
-      this.addVmModalLoading = true
-      api('listVirtualMachines', {
-        listAll: true,
-        page: 1,
-        pagesize: 500,
-        networkid: this.resource.associatednetworkid,
-        account: this.resource.account,
-        domainid: this.resource.domainid
-      }).then(response => {
-        this.vms = response.listvirtualmachinesresponse.virtualmachine
-        this.addVmModalLoading = false
-      }).catch(error => {
-        this.$notification.error({
-          message: `Error ${error.response.status}`,
-          description: error.response.data.errorresponse.errortext
-        })
-        this.closeModal()
-      })
+      this.fetchVirtualMachines()
     },
     fetchNics (e) {
       this.addVmModalNicLoading = true
+      this.newRule.virtualmachineid = e.target.value
       api('listNics', {
         virtualmachineid: e.target.value,
-        networkid: this.resource.associatednetworkid
+        networkId: ('vpcid' in this.resource && !('associatednetworkid' in this.resource)) ? this.selectedTier : this.resource.associatednetworkid
       }).then(response => {
         if (!response.listnicsresponse.nic || response.listnicsresponse.nic.length < 1) return
         const nic = response.listnicsresponse.nic[0]
@@ -523,11 +601,29 @@ export default {
         this.addVmModalNicLoading = false
       }).catch(error => {
         console.log(error)
-        this.$notification.error({
-          message: `Error ${error.response.status}`,
-          description: error.response.data.errorresponse.errortext
-        })
+        this.$notifyError(error)
         this.closeModal()
+      })
+    },
+    fetchVirtualMachines () {
+      this.vmCount = 0
+      this.vms = []
+      this.addVmModalLoading = true
+      const networkId = ('vpcid' in this.resource && !('associatednetworkid' in this.resource)) ? this.selectedTier : this.resource.associatednetworkid
+      api('listVirtualMachines', {
+        listAll: true,
+        keyword: this.searchQuery,
+        page: this.vmPage,
+        pagesize: this.vmPageSize,
+        networkid: networkId,
+        account: this.resource.account,
+        domainid: this.resource.domainid
+      }).then(response => {
+        this.vmCount = response.listvirtualmachinesresponse.count || 0
+        this.vms = response.listvirtualmachinesresponse.virtualmachine
+        this.addVmModalLoading = false
+      }).catch(error => {
+        this.$notifyError(error)
       })
     },
     handleChangePage (page, pageSize) {
@@ -539,6 +635,10 @@ export default {
       this.page = currentPage
       this.pageSize = pageSize
       this.fetchData()
+    },
+    onSearch (value) {
+      this.searchQuery = value
+      this.fetchVirtualMachines()
     }
   }
 }
@@ -725,6 +825,28 @@ export default {
 
   .pagination {
     margin-top: 20px;
+    text-align: right;
   }
 
+  .list-view {
+    overflow-y: auto;
+    display: block;
+    width: 100%;
+  }
+
+  .filter {
+    display: block;
+    width: 240px;
+    margin-bottom: 10px;
+
+    .form__item {
+      width: 100%;
+    }
+  }
+
+  .input-search {
+    margin-bottom: 10px;
+    width: 50%;
+    float: right;
+  }
 </style>

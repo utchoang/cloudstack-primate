@@ -39,7 +39,7 @@
           <a-form-item :style="{ display: 'inline-block', width: '14%' }">
             <a-input
               v-decorator="[ 'gateway', {
-                rules: [{ required: true, message: 'Please enter Gateway' }]
+                rules: [{ required: true, message: $t('message.error.gateway') }]
               }]"
               :placeholder="$t('label.gateway')"
             />
@@ -47,7 +47,7 @@
           <a-form-item :style="{ display: 'inline-block', width: '14%' }">
             <a-input
               v-decorator="[ 'netmask', {
-                rules: [{ required: true, message: 'Please enter Netmask' }]
+                rules: [{ required: true, message: $t('message.error.netmask') }]
               }]"
               :placeholder="$t('label.netmask')"
             />
@@ -64,16 +64,16 @@
                 rules: [
                   {
                     required: true,
-                    message: 'Please enter Start IP'
+                    message: $t('message.error.startip')
                   },
                   {
                     validator: checkIpFormat,
                     ipV4: true,
-                    message: 'Please enter a valid IPv4 address.'
+                    message: $t('message.error.ipv4.address')
                   }
                 ]
               }]"
-              :placeholder="$t('label.start.IP')"
+              :placeholder="$t('label.start.ip')"
             />
           </a-form-item>
           <a-form-item :style="{ display: 'inline-block', width: '14%' }">
@@ -82,15 +82,15 @@
                 rules: [
                   {
                     required: true,
-                    message: 'Please enter End IP'
+                    message: $t('message.error.endip')
                   },
                   {
                     validator: checkIpFormat,
                     ipV4: true,
-                    message: 'Please enter a valid IPv4 address.'
+                    message: $t('message.error.ipv4.address')
                   }]
               }]"
-              :placeholder="$t('label.end.IP')"
+              :placeholder="$t('label.end.ip')"
             />
           </a-form-item>
           <a-form-item :style="{ display: 'inline-block', width: '14%' }">
@@ -117,7 +117,7 @@
       @cancel="() => { showError = false }"
       centered
     >
-      <span>{{ $t('message.required.add.least.IP') }}</span>
+      <span>{{ $t('message.required.add.least.ip') }}</span>
     </a-modal>
   </div>
 </template>
@@ -130,7 +130,7 @@ export default {
     },
     description: {
       type: String,
-      default: 'Creating IP Ranges'
+      default: 'label.creating.iprange'
     },
     prefillContent: {
       type: Object,
@@ -166,12 +166,12 @@ export default {
           width: 120
         },
         {
-          title: this.$t('label.start.IP'),
+          title: this.$t('label.start.ip'),
           dataIndex: 'startIp',
           width: 130
         },
         {
-          title: this.$t('label.end.IP'),
+          title: this.$t('label.end.ip'),
           dataIndex: 'endIp',
           width: 130
         },

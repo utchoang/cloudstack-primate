@@ -32,7 +32,13 @@
               <template slot="title">
                 {{ $t('label.make.project.owner') }}
               </template>
-              <a-button type="default" shape="circle" icon="user" size="small" @click="onMakeProjectOwner(record)" />
+              <a-button
+                type="default"
+                shape="circle"
+                icon="user"
+                size="small"
+                :disabled="!('updateProject' in $store.getters.apis)"
+                @click="onMakeProjectOwner(record)" />
             </a-tooltip>
             <a-tooltip placement="top">
               <template slot="title">
@@ -43,6 +49,7 @@
                 shape="circle"
                 icon="delete"
                 size="small"
+                :disabled="!('deleteAccountFromProject' in $store.getters.apis)"
                 @click="onShowConfirmDelete(record)"/>
             </a-tooltip>
           </span>
@@ -53,11 +60,15 @@
           :current="page"
           :pageSize="pageSize"
           :total="itemCount"
-          :showTotal="total => `Total ${total} items`"
+          :showTotal="total => `${$t('label.total')} ${total} ${$t('label.items')}`"
           :pageSizeOptions="['10', '20', '40', '80', '100']"
           @change="changePage"
           @showSizeChange="changePageSize"
-          showSizeChanger/>
+          showSizeChanger>
+          <template slot="buildOptionText" slot-scope="props">
+            <span>{{ props.value }} / {{ $t('label.page') }}</span>
+          </template>
+        </a-pagination>
       </a-col>
     </a-row>
   </div>
@@ -88,18 +99,18 @@ export default {
   created () {
     this.columns = [
       {
-        title: this.$t('account'),
+        title: this.$t('label.account'),
         dataIndex: 'account',
         width: '35%',
         scopedSlots: { customRender: 'account' }
       },
       {
-        title: this.$t('role'),
+        title: this.$t('label.role'),
         dataIndex: 'role',
         scopedSlots: { customRender: 'role' }
       },
       {
-        title: this.$t('action'),
+        title: this.$t('label.action'),
         dataIndex: 'action',
         fixed: 'right',
         width: 100,
@@ -144,10 +155,7 @@ export default {
         this.itemCount = itemCount
         this.dataSource = listProjectAccount
       }).catch(error => {
-        this.$notification.error({
-          message: 'Request Failed',
-          description: error.response.headers['x-description']
-        })
+        this.$notifyError(error)
       }).finally(() => {
         this.loading = false
       })
@@ -164,7 +172,7 @@ export default {
     },
     onMakeProjectOwner (record) {
       const title = this.$t('label.make.project.owner')
-      const loading = this.$message.loading(title + 'in progress for ' + record.account, 0)
+      const loading = this.$message.loading(title + `${this.$t('label.in.progress.for')} ` + record.account, 0)
       const params = {}
 
       params.id = this.resource.id
@@ -178,24 +186,20 @@ export default {
         }
       }).catch(error => {
         // show error
-        this.$notification.error({
-          message: 'Request Failed',
-          description: error.response.headers['x-description']
-        })
+        this.$notifyError(error)
       }).finally(() => {
         setTimeout(loading, 1000)
       })
     },
     onShowConfirmDelete (record) {
       const self = this
-      let title = this.$t('deleteconfirm')
-      title = title.replace('{name}', this.$t('account'))
+      const title = `${this.$t('label.deleteconfirm')} ${this.$t('label.account')}`
 
       this.$confirm({
         title: title,
-        okText: 'OK',
+        okText: this.$t('label.ok'),
         okType: 'danger',
-        cancelText: 'Cancel',
+        cancelText: this.$t('label.cancel'),
         onOk () {
           self.removeAccount(record)
         }
@@ -203,7 +207,7 @@ export default {
     },
     removeAccount (record) {
       const title = this.$t('label.remove.project.account')
-      const loading = this.$message.loading(title + 'in progress for ' + record.account, 0)
+      const loading = this.$message.loading(title + `${this.$t('label.in.progress.for')} ` + record.account, 0)
       const params = {}
 
       params.account = record.account
@@ -217,10 +221,7 @@ export default {
         }
       }).catch(error => {
         // show error
-        this.$notification.error({
-          message: 'Request Failed',
-          description: error.response.headers['x-description']
-        })
+        this.$notifyError(error)
       }).finally(() => {
         setTimeout(loading, 1000)
       })

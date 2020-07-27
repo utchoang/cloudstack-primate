@@ -18,13 +18,13 @@
 <template>
   <div class="form-layout">
     <a-form :form="form" layout="vertical">
-      <a-form-item :label="$t('diskoffering')" v-if="resource.type !== 'ROOT'">
+      <a-form-item :label="$t('label.diskoffering')" v-if="resource.type !== 'ROOT'">
         <a-select
           v-decorator="['diskofferingid', {
             initialValue: selectedDiskOfferingId,
-            rules: [{ required: true, message: 'Please select an option' }]}]"
+            rules: [{ required: true, message: `${this.$t('message.error.select')}` }]}]"
           :loading="loading"
-          :placeholder="$t('Offering Type')"
+          :placeholder="$t('label.diskoffering')"
           @change="id => (customDiskOffering = offerings.filter(x => x.id === id)[0].iscustomized || false)"
         >
           <a-select-option
@@ -35,19 +35,19 @@
         </a-select>
       </a-form-item>
       <div v-if="customDiskOffering || resource.type === 'ROOT'">
-        <a-form-item :label="$t('Size (GB)')">
+        <a-form-item :label="$t('label.sizegb')">
           <a-input
             v-decorator="['size', {
-              rules: [{ required: true, message: 'Please enter size in GB' }]}]"
-            :placeholder="$t('Enter Size')"/>
+              rules: [{ required: true, message: $t('message.error.size') }]}]"
+            :placeholder="$t('label.disksize')"/>
         </a-form-item>
       </div>
-      <a-form-item :label="$t('shrinkok')">
+      <a-form-item :label="$t('label.shrinkok')">
         <a-checkbox v-decorator="['shrinkok']" />
       </a-form-item>
       <div :span="24" class="action-button">
-        <a-button @click="closeModal">{{ $t('cancel') }}</a-button>
-        <a-button :loading="loading" type="primary" @click="handleSubmit">{{ $t('ok') }}</a-button>
+        <a-button @click="closeModal">{{ $t('label.cancel') }}</a-button>
+        <a-button :loading="loading" type="primary" @click="handleSubmit">{{ $t('label.ok') }}</a-button>
       </div>
     </a-form>
   </div>
@@ -101,21 +101,21 @@ export default {
         api('resizeVolume', values).then(response => {
           this.$pollJob({
             jobId: response.resizevolumeresponse.jobid,
-            successMessage: 'Successfully resized volume',
+            successMessage: this.$t('message.success.resize.volume'),
             successMethod: () => {
               this.$store.dispatch('AddAsyncJob', {
-                title: `Successfully resized Volume`,
+                title: this.$t('message.success.resize.volume'),
                 jobid: response.resizevolumeresponse.jobid,
                 description: values.name,
                 status: 'progress'
               })
             },
-            errorMessage: 'Failed to resize volume',
+            errorMessage: this.$t('message.resize.volume.failed'),
             errorMethod: () => {
               this.closeModal()
             },
             loadingMessage: `Volume resize is in progress`,
-            catchMessage: 'Error encountered while fetching async job result',
+            catchMessage: this.$t('error.fetching.async.job.result'),
             catchMethod: () => {
               this.loading = false
               this.closeModal()
@@ -123,7 +123,7 @@ export default {
           })
         }).catch(error => {
           this.$notification.error({
-            message: `Error ${error.response.status}`,
+            message: `${this.$t('label.error')} ${error.response.status}`,
             description: error.response.data.errorresponse.errortext,
             duration: 0
           })

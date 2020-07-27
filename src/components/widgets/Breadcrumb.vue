@@ -26,7 +26,13 @@
         {{ $t(item.meta.title) }}
       </router-link>
       <span v-else-if="$route.params.id">
-        {{ resource.displayname || resource.displaytext || resource.name || resource.hostname || resource.username || resource.ipaddress || $route.params.id }}
+        <label v-if="'name' in resource">
+          <span v-if="['USER.LOGIN', 'USER.LOGOUT', 'ROUTER.HEALTH.CHECKS', 'FIREWALL.CLOSE', 'ALERT.SERVICE.DOMAINROUTER'].includes(resource.name)">{{ $t(resource.name.toLowerCase()) }}</span>
+          <span v-else>{{ resource.name }}</span>
+        </label>
+        <label v-else>
+          {{ resource.name || resource.displayname || resource.displaytext || resource.hostname || resource.username || resource.ipaddress || $route.params.id }}
+        </label>
       </span>
       <span v-else>
         {{ $t(item.meta.title) }}
@@ -34,12 +40,12 @@
       <span v-if="index === (breadList.length - 1)" style="margin-left: 5px">
         <a-tooltip placement="bottom">
           <template slot="title">
-            {{ "Open Documentation" }}
+            {{ $t('label.open.documentation') }}
           </template>
           <a
             v-if="item.meta.docHelp"
             style="margin-right: 12px"
-            :href="docBase + '/' + $route.meta.docHelp"
+            :href="$config.docBase + '/' + $route.meta.docHelp"
             target="_blank">
             <a-icon type="question-circle-o"></a-icon>
           </a>
@@ -52,7 +58,6 @@
 </template>
 
 <script>
-import config from '@/config/settings'
 
 export default {
   name: 'Breadcrumb',
@@ -67,8 +72,7 @@ export default {
   data () {
     return {
       name: '',
-      breadList: [],
-      docBase: config.docBase
+      breadList: []
     }
   },
   created () {
@@ -101,7 +105,6 @@ export default {
 <style>
 .ant-breadcrumb {
   vertical-align: text-bottom;
-  margin-bottom: 8px;
 }
 
 .ant-breadcrumb .anticon {

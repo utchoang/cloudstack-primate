@@ -90,27 +90,27 @@ export default {
       }).then(response => {
         this.$pollJob({
           jobId: response.dedicatezoneresponse.jobid,
-          successMessage: `Successfully dedicated zone`,
+          successMessage: this.$t('label.zone.dedicated'),
           successMethod: () => {
             this.parentFetchData()
             this.fetchParentData()
             this.dedicatedDomainId = this.domainId
             this.dedicatedDomainModal = false
             this.$store.dispatch('AddAsyncJob', {
-              title: 'Successfully dedicated zone',
+              title: this.$t('label.zone.dedicated'),
               jobid: response.dedicatezoneresponse.jobid,
-              description: `Domain ID: ${this.dedicatedDomainId}`,
+              description: `${this.$t('label.domain.id')} : ${this.dedicatedDomainId}`,
               status: 'progress'
             })
           },
-          errorMessage: 'Failed to dedicate zone',
+          errorMessage: this.$t('error.dedicate.zone.failed'),
           errorMethod: () => {
             this.parentFetchData()
             this.fetchParentData()
             this.dedicatedDomainModal = false
           },
-          loadingMessage: `Dedicating zone...`,
-          catchMessage: 'Error encountered while fetching async job result',
+          loadingMessage: this.$t('message.dedicating.zone'),
+          catchMessage: this.$t('error.fetching.async.job.result'),
           catchMethod: () => {
             this.parentFetchData()
             this.fetchParentData()
@@ -118,10 +118,7 @@ export default {
           }
         })
       }).catch(error => {
-        this.$notification.error({
-          message: `Error ${error.response.status}`,
-          description: error.response.data.errorresponse.errortext
-        })
+        this.$notifyError(error)
         this.dedicatedDomainModal = false
       })
     },
@@ -137,27 +134,27 @@ export default {
       }).then(response => {
         this.$pollJob({
           jobId: response.dedicatepodresponse.jobid,
-          successMessage: `Successfully dedicated pod`,
+          successMessage: this.$t('label.pod.dedicated'),
           successMethod: () => {
             this.parentFetchData()
             this.fetchParentData()
             this.dedicatedDomainId = this.domainId
             this.dedicatedDomainModal = false
             this.$store.dispatch('AddAsyncJob', {
-              title: 'Successfully dedicated pod',
+              title: this.$t('label.pod.dedicated'),
               jobid: response.dedicatepodresponse.jobid,
-              description: `Domain ID: ${this.dedicatedDomainId}`,
+              description: `${this.$t('label.domainid')}: ${this.dedicatedDomainId}`,
               status: 'progress'
             })
           },
-          errorMessage: 'Failed to dedicate pod',
+          errorMessage: this.$t('error.dedicate.pod.failed'),
           errorMethod: () => {
             this.parentFetchData()
             this.fetchParentData()
             this.dedicatedDomainModal = false
           },
-          loadingMessage: `Dedicating pod...`,
-          catchMessage: 'Error encountered while fetching async job result',
+          loadingMessage: this.$t('message.dedicating.pod'),
+          catchMessage: this.$t('error.fetching.async.job.result'),
           catchMethod: () => {
             this.parentFetchData()
             this.fetchParentData()
@@ -165,10 +162,7 @@ export default {
           }
         })
       }).catch(error => {
-        this.$notification.error({
-          message: `Error ${error.response.status}`,
-          description: error.response.data.errorresponse.errortext
-        })
+        this.$notifyError(error)
         this.dedicatedDomainModal = false
       })
     },
@@ -184,27 +178,27 @@ export default {
       }).then(response => {
         this.$pollJob({
           jobId: response.dedicateclusterresponse.jobid,
-          successMessage: `Successfully dedicated cluster`,
+          successMessage: this.$t('message.cluster.dedicated'),
           successMethod: () => {
             this.parentFetchData()
             this.fetchParentData()
             this.dedicatedDomainId = this.domainId
             this.dedicatedDomainModal = false
             this.$store.dispatch('AddAsyncJob', {
-              title: 'Successfully dedicated cluster',
+              title: this.$t('message.cluster.dedicated'),
               jobid: response.dedicateclusterresponse.jobid,
-              description: `Domain ID: ${this.dedicatedDomainId}`,
+              description: `${this.$t('label.domainid')}: ${this.dedicatedDomainId}`,
               status: 'progress'
             })
           },
-          errorMessage: 'Failed to dedicate cluster',
+          errorMessage: this.$t('error.dedicate.cluster.failed'),
           errorMethod: () => {
             this.parentFetchData()
             this.fetchParentData()
             this.dedicatedDomainModal = false
           },
-          loadingMessage: `Dedicating cluster...`,
-          catchMessage: 'Error encountered while fetching async job result',
+          loadingMessage: this.$t('message.dedicating.cluster'),
+          catchMessage: this.$t('error.fetching.async.job.result'),
           catchMethod: () => {
             this.parentFetchData()
             this.fetchParentData()
@@ -212,10 +206,7 @@ export default {
           }
         })
       }).catch(error => {
-        this.$notification.error({
-          message: `Error ${error.response.status}`,
-          description: error.response.data.errorresponse.errortext
-        })
+        this.$notifyError(error)
         this.dedicatedDomainModal = false
       })
     },
@@ -231,27 +222,27 @@ export default {
       }).then(response => {
         this.$pollJob({
           jobId: response.dedicatehostresponse.jobid,
-          successMessage: `Successfully dedicated host`,
+          successMessage: this.$t('message.host.dedicated'),
           successMethod: () => {
             this.parentFetchData()
             this.fetchParentData()
             this.dedicatedDomainId = this.domainId
             this.dedicatedDomainModal = false
             this.$store.dispatch('AddAsyncJob', {
-              title: 'Successfully dedicated host',
+              title: this.$t('message.host.dedicated'),
               jobid: response.dedicatehostresponse.jobid,
-              description: `Domain ID: ${this.dedicatedDomainId}`,
+              description: `${this.$t('label.domainid')}: ${this.dedicatedDomainId}`,
               status: 'progress'
             })
           },
-          errorMessage: 'Failed to dedicate host',
+          errorMessage: this.$t('error.dedicate.host.failed'),
           errorMethod: () => {
             this.parentFetchData()
             this.fetchParentData()
             this.dedicatedDomainModal = false
           },
-          loadingMessage: `Dedicating host...`,
-          catchMessage: 'Error encountered while fetching async job result',
+          loadingMessage: this.$t('message.dedicating.host'),
+          catchMessage: this.$t('error.fetching.async.job.result'),
           catchMethod: () => {
             this.parentFetchData()
             this.fetchParentData()
@@ -259,10 +250,7 @@ export default {
           }
         })
       }).catch(error => {
-        this.$notification.error({
-          message: `Error ${error.response.status}`,
-          description: error.response.data.errorresponse.errortext
-        })
+        this.$notifyError(error)
         this.dedicatedDomainModal = false
       })
     },

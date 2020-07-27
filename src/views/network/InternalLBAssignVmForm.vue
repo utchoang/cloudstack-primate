@@ -19,14 +19,14 @@
   <a-spin :spinning="fetchLoading">
     <div>
       <div class="vm-modal__header">
-        <span style="min-width: 200px;">{{ $t('name') }}</span>
-        <span>{{ $t('state') }}</span>
-        <span>{{ $t('instancename') }}</span>
-        <span>{{ $t('displayname') }}</span>
-        <span>{{ $t('ip') }}</span>
-        <span>{{ $t('account') }}</span>
-        <span>{{ $t('zonenamelabel') }}</span>
-        <span>{{ $t('select') }}</span>
+        <span style="min-width: 200px;">{{ $t('label.name') }}</span>
+        <span>{{ $t('label.state') }}</span>
+        <span>{{ $t('label.instancename') }}</span>
+        <span>{{ $t('label.displayname') }}</span>
+        <span>{{ $t('label.ip') }}</span>
+        <span>{{ $t('label.account') }}</span>
+        <span>{{ $t('label.zonenamelabel') }}</span>
+        <span>{{ $t('label.select') }}</span>
       </div>
 
       <a-checkbox-group style="width: 100%;">
@@ -42,7 +42,7 @@
               v-model="iLb.vmguestip[index]"
             >
               <a-select-option v-for="(nic, nicIndex) in nics[index]" :key="nic" :value="nic">
-                {{ nic }}{{ nicIndex === 0 ? ' (Primary)' : null }}
+                {{ nic }}{{ nicIndex === 0 ? ` (${this.$t('label.primary')})` : null }}
               </a-select-option>
             </a-select>
           </span>
@@ -61,19 +61,23 @@
           :current="page"
           :pageSize="pageSize"
           :total="vmCounts"
-          :showTotal="total => `Total ${total} items`"
+          :showTotal="total => `${$t('label.total')} ${total} ${$t('label.items')}`"
           :pageSizeOptions="['10', '20', '40', '80', '100']"
           @change="changePage"
           @showSizeChange="changePageSize"
-          showSizeChanger/>
+          showSizeChanger>
+          <template slot="buildOptionText" slot-scope="props">
+            <span>{{ props.value }} / {{ $t('label.page') }}</span>
+          </template>
+        </a-pagination>
       </a-checkbox-group>
     </div>
     <div class="actions">
       <a-button @click="closeModal">
-        {{ $t('Cancel') }}
+        {{ $t('label.cancel') }}
       </a-button>
       <a-button type="primary" @click="handleSubmit">
-        {{ $t('OK') }}
+        {{ $t('label.ok') }}
       </a-button>
     </div>
   </a-spin>
@@ -124,7 +128,11 @@ export default {
       api('listLoadBalancers', {
         id: this.resource.id
       }).then(response => {
-        this.assignedVMs = response.listloadbalancersresponse.loadbalancer[0].loadbalancerinstance || []
+        const lb = response.listloadbalancersresponse.loadbalancer
+        this.assignedVMs = []
+        if (Array.isArray(lb) && lb.length) {
+          this.assignedVMs = lb[0].loadbalancerinstance || []
+        }
       }).finally(() => {
         this.fetchLoading = false
       })
@@ -163,7 +171,7 @@ export default {
       this.addVmModalNicLoading = true
       api('listNics', {
         virtualmachineid: e.target.value,
-        networkid: this.resource.associatednetworkid
+        networkid: this.resource.networkid
       }).then(response => {
         if (!response.listnicsresponse.nic[0]) return
         const newItem = []
@@ -175,10 +183,7 @@ export default {
         this.iLb.vmguestip[index] = this.nics[index][0]
         this.addVmModalNicLoading = false
       }).catch(error => {
-        this.$notification.error({
-          message: `Error ${error.response.status}` || 'Error',
-          description: error.response.data.errorresponse.errortext || 'Error'
-        })
+        this.$notifyError(error)
         this.closeModal()
       })
     },
@@ -200,20 +205,20 @@ export default {
       api('assignToLoadBalancerRule', this.params).then(response => {
         this.$pollJob({
           jobId: response.assigntoloadbalancerruleresponse.jobid,
-          successMessage: `Successfully assigned VMs to ${this.resource.name}`,
+          successMessage: `${this.$t('message.success.assigned.vms')} ${this.$t('label.to')} ${this.resource.name}`,
           successMethod: () => {
             this.$emit('refresh-data')
           },
-          errorMessage: `Failed to assign VMs to ${this.resource.name}`,
+          errorMessage: `${this.$t('message.failed.to.assign.vms')} ${this.$t('label.to')} ${this.resource.name}`,
           errorMethod: () => {
             this.$emit('refresh-data')
           },
-          loadingMessage: `Assigning VMs to ${this.resource.name}`,
-          catchMessage: 'Error encountered while fetching async job result'
+          loadingMessage: `${this.$t('label.assigning.vms')} ${this.$t('label.to')} ${this.resource.name}`,
+          catchMessage: this.$t('error.fetching.async.job.result')
         })
       }).catch(error => {
         this.$notification.error({
-          message: `Error ${error.response.status}`,
+          message: `${this.$t('label.error')} ${error.response.status}`,
           description: error.response.data.errorresponse.errortext,
           duration: 0
         })

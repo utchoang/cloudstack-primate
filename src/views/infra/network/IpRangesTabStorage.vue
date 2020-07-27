@@ -18,6 +18,7 @@
 <template>
   <a-spin :spinning="componentLoading">
     <a-button
+      :disabled="!('createStorageNetworkIpRange' in $store.getters.apis)"
       type="dashed"
       icon="plus"
       style="margin-bottom: 20px; width: 100%"
@@ -40,8 +41,9 @@
         <a-popover placement="bottom">
           <template slot="content">{{ $t('label.remove.ip.range') }}</template>
           <a-button
+            :disabled="!('deleteStorageNetworkIpRange' in $store.getters.apis)"
             icon="delete"
-            shape="round"
+            shape="circle"
             type="danger"
             @click="handleDeleteIpRange(record.id)"></a-button>
         </a-popover>
@@ -54,11 +56,15 @@
       :current="page"
       :pageSize="pageSize"
       :total="items.length"
-      :showTotal="total => `Total ${total} items`"
+      :showTotal="total => `${$t('label.total')} ${total} ${$t('label.items')}`"
       :pageSizeOptions="['10', '20', '40', '80', '100']"
       @change="changePage"
       @showSizeChange="changePageSize"
-      showSizeChanger/>
+      showSizeChanger>
+      <template slot="buildOptionText" slot-scope="props">
+        <span>{{ props.value }} / {{ $t('label.page') }}</span>
+      </template>
+    </a-pagination>
 
     <a-modal v-model="addIpRangeModal" :title="$t('label.add.ip.range')" @ok="handleAddIpRange">
       <a-form
@@ -67,38 +73,38 @@
         layout="vertical"
         class="form"
       >
-        <a-form-item :label="$t('podId')" class="form__item">
+        <a-form-item :label="$t('label.podid')" class="form__item">
           <a-select
             v-decorator="['pod', {
-              rules: [{ required: true, message: 'Required' }]
+              rules: [{ required: true, message: `${$t('label.required')}` }]
             }]"
           >
             <a-select-option v-for="pod in pods" :key="pod.id" :value="pod.id">{{ pod.name }}</a-select-option>
           </a-select>
         </a-form-item>
-        <a-form-item :label="$t('gateway')" class="form__item">
+        <a-form-item :label="$t('label.gateway')" class="form__item">
           <a-input
-            v-decorator="['gateway', { rules: [{ required: true, message: 'Required' }] }]">
+            v-decorator="['gateway', { rules: [{ required: true, message: `${$t('label.required')}` }] }]">
           </a-input>
         </a-form-item>
-        <a-form-item :label="$t('netmask')" class="form__item">
+        <a-form-item :label="$t('label.netmask')" class="form__item">
           <a-input
-            v-decorator="['netmask', { rules: [{ required: true, message: 'Required' }] }]">
+            v-decorator="['netmask', { rules: [{ required: true, message: `${$t('label.required')}` }] }]">
           </a-input>
         </a-form-item>
-        <a-form-item :label="$t('vlan')" class="form__item">
+        <a-form-item :label="$t('label.vlan')" class="form__item">
           <a-input
             v-decorator="['vlan']">
           </a-input>
         </a-form-item>
-        <a-form-item :label="$t('startip')" class="form__item">
+        <a-form-item :label="$t('label.startip')" class="form__item">
           <a-input
-            v-decorator="['startip', { rules: [{ required: true, message: 'Required' }] }]">
+            v-decorator="['startip', { rules: [{ required: true, message: `${$t('label.required')}` }] }]">
           </a-input>
         </a-form-item>
-        <a-form-item :label="$t('endip')" class="form__item">
+        <a-form-item :label="$t('label.endip')" class="form__item">
           <a-input
-            v-decorator="['endip', { rules: [{ required: true, message: 'Required' }] }]">
+            v-decorator="['endip', { rules: [{ required: true, message: `${$t('label.required')}` }] }]">
           </a-input>
         </a-form-item>
       </a-form>
@@ -133,31 +139,31 @@ export default {
       defaultSelectedPod: null,
       columns: [
         {
-          title: this.$t('podId'),
+          title: this.$t('label.podid'),
           scopedSlots: { customRender: 'name' }
         },
         {
-          title: this.$t('gateway'),
+          title: this.$t('label.gateway'),
           dataIndex: 'gateway'
         },
         {
-          title: this.$t('netmask'),
+          title: this.$t('label.netmask'),
           dataIndex: 'netmask'
         },
         {
-          title: this.$t('vlan'),
+          title: this.$t('label.vlan'),
           dataIndex: 'vlanid'
         },
         {
-          title: this.$t('startip'),
+          title: this.$t('label.startip'),
           dataIndex: 'startip'
         },
         {
-          title: this.$t('endip'),
+          title: this.$t('label.endip'),
           dataIndex: 'endip'
         },
         {
-          title: this.$t('action'),
+          title: this.$t('label.action'),
           scopedSlots: { customRender: 'actions' }
         }
       ],
@@ -190,11 +196,7 @@ export default {
       }).then(response => {
         this.items = response.liststoragenetworkiprangeresponse.storagenetworkiprange ? response.liststoragenetworkiprangeresponse.storagenetworkiprange : []
       }).catch(error => {
-        this.$notification.error({
-          message: `Error ${error.response.status}`,
-          description: error.response.data.liststoragenetworkiprangeresponse
-            ? error.response.data.liststoragenetworkiprangeresponse.errortext : error.response.data.errorresponse.errortext
-        })
+        this.$notifyError(error)
       }).finally(() => {
         this.componentLoading = false
       })
@@ -206,11 +208,7 @@ export default {
       }).then(response => {
         this.pods = response.listpodsresponse.pod ? response.listpodsresponse.pod : []
       }).catch(error => {
-        this.$notification.error({
-          message: `Error ${error.response.status}`,
-          description: error.response.data.listpodsresponse
-            ? error.response.data.listpodsresponse.errortext : error.response.data.errorresponse.errortext
-        })
+        this.$notifyError(error)
       }).finally(() => {
         this.componentLoading = false
       })
@@ -233,7 +231,7 @@ export default {
       this.componentLoading = true
       api('deleteStorageNetworkIpRange', { id }).then(response => {
         this.$store.dispatch('AddAsyncJob', {
-          title: `Successfully removed IP Range`,
+          title: this.$t('message.success.remove.iprange'),
           jobid: response.deletestoragenetworkiprangeresponse.jobid,
           status: 'progress'
         })
@@ -243,24 +241,20 @@ export default {
             this.componentLoading = false
             this.fetchData()
           },
-          errorMessage: 'Removing failed',
+          errorMessage: this.$t('message.remove.failed'),
           errorMethod: () => {
             this.componentLoading = false
             this.fetchData()
           },
-          loadingMessage: `Removing IP Range...`,
-          catchMessage: 'Error encountered while fetching async job result',
+          loadingMessage: this.$t('message.remove.iprange.processing'),
+          catchMessage: this.$t('error.fetching.async.job.result'),
           catchMethod: () => {
             this.componentLoading = false
             this.fetchData()
           }
         })
       }).catch(error => {
-        this.$notification.error({
-          message: `Error ${error.response.status}`,
-          description: error.response.data.deletestoragenetworkiprangeresponse
-            ? error.response.data.deletestoragenetworkiprangeresponse.errortext : error.response.data.errorresponse.errortext
-        })
+        this.$notifyError(error)
         this.componentLoading = false
         this.fetchData()
       })
@@ -281,7 +275,7 @@ export default {
           vlan: values.vlan || null
         }).then(response => {
           this.$store.dispatch('AddAsyncJob', {
-            title: `Successfully added IP Range`,
+            title: this.$t('message.success.add.iprange'),
             jobid: response.createstoragenetworkiprangeresponse.jobid,
             status: 'progress'
           })
@@ -291,24 +285,20 @@ export default {
               this.componentLoading = false
               this.fetchData()
             },
-            errorMessage: 'Adding failed',
+            errorMessage: this.$t('message.add.failed'),
             errorMethod: () => {
               this.componentLoading = false
               this.fetchData()
             },
-            loadingMessage: `Adding IP Range...`,
-            catchMessage: 'Error encountered while fetching async job result',
+            loadingMessage: this.$t('message.add.iprange.processing'),
+            catchMessage: this.$t('error.fetching.async.job.result'),
             catchMethod: () => {
               this.componentLoading = false
               this.fetchData()
             }
           })
         }).catch(error => {
-          this.$notification.error({
-            message: `Error ${error.response.status}`,
-            description: error.response.data.createstoragenetworkiprangeresponse
-              ? error.response.data.createstoragenetworkiprangeresponse.errortext : error.response.data.errorresponse.errortext
-          })
+          this.$notifyError(error)
         }).finally(() => {
           this.componentLoading = false
           this.fetchData()

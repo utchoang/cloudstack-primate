@@ -16,24 +16,21 @@
 // under the License.
 
 <template>
-  <a-form-item :label="this.$t('diskSize')">
-    <a-row>
-      <a-col :span="10">
-        <a-slider
-          :min="0"
-          :max="1024"
-          v-model="inputValue"
-          @change="($event) => updateDickSize($event)"
-        />
-      </a-col>
-      <a-col :span="4">
-        <a-input-number
-          v-model="inputValue"
-          :formatter="value => `${value} GB`"
-          :parser="value => value.replace(' GB', '')"
-        />
+  <a-form-item
+    :label="inputDecorator === 'rootdisksize' ? $t('label.root.disk.size') : $t('label.disksize')"
+    class="form-item">
+    <a-row :gutter="12">
+      <a-col :md="4" :lg="4">
+        <span style="display: inline-flex">
+          <a-input-number
+            v-model="inputValue"
+            @change="($event) => updateDiskSize($event)"
+          />
+          <span style="padding-top: 6px; margin-left: 5px">GB</span>
+        </span>
       </a-col>
     </a-row>
+    <p v-if="error" style="color: red"> {{ $t(error) }} </p>
   </a-form-item>
 </template>
 
@@ -44,21 +41,58 @@ export default {
     inputDecorator: {
       type: String,
       default: ''
+    },
+    preFillContent: {
+      type: Object,
+      default: () => {}
+    },
+    minDiskSize: {
+      type: Number,
+      default: 0
+    }
+  },
+  watch: {
+    minDiskSize (newItem) {
+      if (newItem && newItem > 0) {
+        this.inputValue = newItem
+        this.updateDiskSize(newItem)
+      }
     }
   },
   data () {
     return {
-      inputValue: 0
+      inputValue: 0,
+      error: false
     }
   },
+  mounted () {
+    this.fillValue()
+  },
   methods: {
-    updateDickSize (value) {
+    fillValue () {
+      this.inputValue = this.minDiskSize
+      if (this.inputDecorator === 'rootdisksize') {
+        this.inputValue = this.preFillContent.rootdisksize ? this.preFillContent.rootdisksize : this.minDiskSize
+      } else if (this.inputDecorator === 'size') {
+        this.inputValue = this.preFillContent.size ? this.preFillContent.size : this.minDiskSize
+      }
+      this.$emit('update-disk-size', this.inputDecorator, this.inputValue)
+    },
+    updateDiskSize (value) {
+      if (value < this.minDiskSize) {
+        this.inputValue = this.minDiskSize
+        this.error = `${this.$t('message.error.limit.value')} ` + this.minDiskSize + ' GB'
+        return
+      }
+      this.error = false
       this.$emit('update-disk-size', this.inputDecorator, value)
     }
   }
 }
 </script>
 
-<style scoped>
-
+<style scoped lang="less">
+  .form-item {
+    margin: 0 5px;
+  }
 </style>

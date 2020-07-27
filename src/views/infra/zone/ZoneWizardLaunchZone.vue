@@ -58,7 +58,7 @@
             class="step-error"
             v-if="step.status===status.FAILED"
           >
-            <div><strong>{{ $t('error.something.went.wrong.please.correct.the.following') }}:</strong></div>
+            <div><strong>{{ $t('label.error.something.went.wrong.please.correct.the.following') }}:</strong></div>
             <div>{{ messageError }}</div>
           </a-card>
         </a-step>
@@ -72,7 +72,7 @@
         icon="play-circle"
         :loading="loading"
         @click="enableZoneAction"
-      >{{ $t('label.enable.zone') }}</a-button>
+      >{{ $t('label.action.enable.zone') }}</a-button>
       <a-button
         v-if="processStatus==='error'"
         class="button-next"
@@ -564,14 +564,14 @@ export default {
         for (let index = 0; index < this.stepData.physicalNetworksReturned.length; index++) {
           const physicalNetwork = this.stepData.physicalNetworksReturned[index]
 
-          if (!this.stepData.stepMove.includes('advUpdatePhysicalNetwork' + index)) {
+          if (!this.stepData.stepMove.includes('advUpdatePhysicalNetwork' + physicalNetwork.id)) {
             const updPhysicalParams = {}
             updPhysicalParams.state = 'Enabled'
             updPhysicalParams.id = physicalNetwork.id
 
             try {
               await this.updatePhysicalNetwork(updPhysicalParams)
-              this.stepData.stepMove.push('advUpdatePhysicalNetwork' + index)
+              this.stepData.stepMove.push('advUpdatePhysicalNetwork' + physicalNetwork.id)
             } catch (e) {
               this.messageError = e
               this.processStatus = STATUS_FAILED
@@ -581,7 +581,7 @@ export default {
           }
 
           // ***** Virtual Router ***** (begin) *****
-          if (!this.stepData.stepMove.includes('advVirtualRouter' + index)) {
+          if (!this.stepData.stepMove.includes('advVirtualRouter' + physicalNetwork.id)) {
             const listParams = {}
             listParams.name = 'VirtualRouter'
             listParams.physicalNetworkId = physicalNetwork.id
@@ -591,7 +591,7 @@ export default {
               const elementId = await this.listVirtualRouterElements(providerId)
               await this.configureVirtualRouterElement(elementId)
               await this.updateNetworkServiceProvider(providerId)
-              this.stepData.stepMove.push('advVirtualRouter' + index)
+              this.stepData.stepMove.push('advVirtualRouter' + physicalNetwork.id)
             } catch (e) {
               this.messageError = e
               this.processStatus = STATUS_FAILED
@@ -639,7 +639,7 @@ export default {
       }
     },
     async configOvs (physicalNetwork) {
-      if (this.stepData.stepMove.includes('configOvs')) {
+      if (this.stepData.stepMove.includes('configOvs' + physicalNetwork.id)) {
         return
       }
 
@@ -656,10 +656,10 @@ export default {
         }
       }
 
-      this.stepData.stepMove.push('configOvs')
+      this.stepData.stepMove.push('configOvs' + physicalNetwork.id)
     },
     async configInternalLBVM (physicalNetwork) {
-      if (this.stepData.stepMove.includes('configInternalLBVM')) {
+      if (this.stepData.stepMove.includes('configInternalLBVM' + physicalNetwork.id)) {
         return
       }
 
@@ -676,7 +676,7 @@ export default {
         }
       }
 
-      this.stepData.stepMove.push('configInternalLBVM')
+      this.stepData.stepMove.push('configInternalLBVM' + physicalNetwork.id)
     },
     async configVpcVirtualRouter (physicalNetwork) {
       const listParams = {}
@@ -684,13 +684,13 @@ export default {
       listParams.physicalNetworkId = physicalNetwork.id
 
       try {
-        if (!this.stepData.stepMove.includes('configVpcVirtualRouter')) {
+        if (!this.stepData.stepMove.includes('configVpcVirtualRouter' + physicalNetwork.id)) {
           const providerId = await this.listNetworkServiceProviders(listParams)
           const elementId = await this.listVirtualRouterElements(providerId)
           await this.configureVirtualRouterElement(elementId)
           await this.updateNetworkServiceProvider(providerId)
 
-          this.stepData.stepMove.push('configVpcVirtualRouter')
+          this.stepData.stepMove.push('configVpcVirtualRouter' + physicalNetwork.id)
         }
       } catch (e) {
         this.messageError = e
@@ -1496,10 +1496,10 @@ export default {
       listNetworkParams.physicalNetworkId = this.stepData.physicalNetworkReturned.id
 
       try {
-        if (!this.stepData.stepMove.includes('enableSecurityGroupProvider')) {
+        if (!this.stepData.stepMove.includes('enableSecurityGroupProvider' + this.stepData.physicalNetworkReturned.id)) {
           const securityGroupProviderId = await this.listNetworkServiceProviders(listNetworkParams)
           await this.updateNetworkServiceProvider(securityGroupProviderId, 'enableSecurityGroupProvider')
-          this.stepData.stepMove.push('enableSecurityGroupProvider')
+          this.stepData.stepMove.push('enableSecurityGroupProvider' + this.stepData.physicalNetworkReturned.id)
         }
 
         await this.stepAddNetscalerProvider()
@@ -1512,7 +1512,7 @@ export default {
     stepComplete () {
       this.setStepStatus(STATUS_FINISH)
       this.currentStep++
-      this.addStep('message.Zone.creation.complete', 'stepComplete')
+      this.addStep('message.zone.creation.complete', 'stepComplete')
       this.setStepStatus(STATUS_FINISH)
       this.currentStep++
       this.processStatus = STATUS_FINISH
@@ -1533,7 +1533,7 @@ export default {
       } catch (e) {
         this.loading = false
         await this.$notification.error({
-          message: 'Request Failed',
+          message: this.$t('message.request.failed'),
           description: e
         })
       }
@@ -1587,7 +1587,7 @@ export default {
           if (jobId) {
             const result = await this.pollJob(jobId)
             if (result.jobstatus === 2) {
-              message = 'createPhysicalNetwork failed. Error: ' + result.jobresult.errortext
+              message = `createPhysicalNetwork ${this.$t('label.failed').toLowerCase()}. ${this.$t('label.error')}: ` + result.jobresult.errortext
               reject(message)
               return
             }
@@ -1616,7 +1616,9 @@ export default {
             const result = await this.pollJob(jobId)
             if (result.jobstatus === 2) {
               this.setStepStatus(STATUS_FAILED)
-              message = 'Failed to add ' + trafficType + ' traffic type to basic zone. Error: ' + result.jobresult.errortext
+              message = `${this.$t('message.failed.to.add')} ` + trafficType +
+                ` ${this.$t('message.traffic.type.to.basic.zone')}. ${this.$t('label.error')}: ` +
+                result.jobresult.errortext
               reject(message)
               return
             }
@@ -1637,7 +1639,7 @@ export default {
           if (jobId) {
             const result = await this.pollJob(jobId)
             if (result.jobstatus === 2) {
-              message = 'updatePhysicalNetwork failed. Error:' + result.jobresult.errortext
+              message = `updatePhysicalNetwork ${this.$t('label.failed').toLowerCase()}. ${this.$t('label.error')}: ` + result.jobresult.errortext
               reject(message)
               return
             }
@@ -1660,7 +1662,7 @@ export default {
             providerId = items[0].id
           }
           if (!type && providerId == null) {
-            message = 'error: listNetworkServiceProviders API doesn\'t return VirtualRouter provider ID'
+            message = this.$t('message.listnsp.not.return.providerid')
             reject(message)
             return
           }
@@ -1682,7 +1684,7 @@ export default {
             virtualRouterElementId = items[0].id
           }
           if (virtualRouterElementId === null) {
-            message = 'error: listVirtualRouterElements API doesn\'t return Virtual Router Element Id'
+            message = this.$t('message.virtual.router.not.return.elementid')
             reject(message)
             return
           }
@@ -1705,7 +1707,7 @@ export default {
           if (jobId) {
             const result = await this.pollJob(jobId)
             if (result.jobstatus === 2) {
-              message = 'configureVirtualRouterElement failed. Error: ' + result.jobresult.errortext
+              message = `configureVirtualRouterElement ${this.$t('label.failed').toLowerCase()}. ${this.$t('label.error')}: ` + result.jobresult.errortext
               reject(message)
               return
             }
@@ -1730,13 +1732,13 @@ export default {
           if (jobId) {
             const result = await this.pollJob(jobId)
             if (result.jobstatus === 2) {
-              message = 'updateNetworkServiceProvider failed. Error: '
+              message = `updateNetworkServiceProvider ${this.$t('label.failed').toLowerCase()}. ${this.$t('label.error')}: `
               switch (type) {
                 case 'netscalerProvider':
-                  message = 'failed to enable Netscaler provider. Error: '
+                  message = `${this.$t('message.enable.netsacler.provider.failed')}. ${this.$t('label.error')}: `
                   break
                 case 'enableSecurityGroupProvider':
-                  message = 'failed to enable security group provider. Error: '
+                  message = `${this.$t('message.enable.securitygroup.provider.failed')}. ${this.$t('label.error')}: `
                   break
               }
               message += result.jobresult.errortext
@@ -1777,7 +1779,7 @@ export default {
           if (jobId) {
             const result = await this.pollJob(jobId)
             if (result.jobstatus === 2) {
-              message = 'configureOvsElement failed. Error: ' + result.jobresult.errortext
+              message = `configureOvsElement ${this.$t('label.failed').toLowerCase()}. ${this.$t('label.error')}: ` + result.jobresult.errortext
               reject(message)
               return
             }
@@ -1800,7 +1802,7 @@ export default {
             internalLbElementId = items[0].id
           }
           if (internalLbElementId == null) {
-            message = 'error: listInternalLoadBalancerElements API doesn\'t return Internal LB Element Id'
+            message = this.$t('message.interloadbalance.not.return.elementid')
             reject(message)
             return
           }
@@ -1819,7 +1821,7 @@ export default {
           if (jobId) {
             const result = await this.pollJob(jobId)
             if (result.jobstatus === 2) {
-              message = 'configureVirtualRouterElement failed. Error: ' + result.jobresult.errortext
+              message = `configureVirtualRouterElement ${this.$t('label.failed').toLowerCase()}. ${this.$t('label.error')}: ` + result.jobresult.errortext
               reject(message)
               return
             }
@@ -1840,7 +1842,7 @@ export default {
           if (jobId) {
             const result = await this.pollJob(jobId)
             if (result.jobstatus === 2) {
-              message = 'addNetworkServiceProvider&name=Netscaler failed. Error: ' + result.jobresult.errortext
+              message = `addNetworkServiceProvider&name=Netscaler ${this.$t('label.failed').toLowerCase()}. ${this.$t('label.error')}: ` + result.jobresult.errortext
               reject(message)
               return
             }
@@ -2006,7 +2008,7 @@ export default {
           if (jobId) {
             const result = await this.pollJob(jobId)
             if (result.jobstatus === 2) {
-              message = 'addNetscalerDevice' + result.jobresult.errortext
+              message = 'addNetscalerDevice ' + result.jobresult.errortext
               reject(message)
               return
             }
