@@ -27,8 +27,8 @@ const options = {
   antDir: resolve('./node_modules/ant-design-vue'),
   varFile: resolve('./src/style/vars.less'),
   themeVariables: [
-    '@primary-color',
     '@link-color',
+    '@primary-color',
     '@success-color',
     '@warning-color',
     '@processing-color',
