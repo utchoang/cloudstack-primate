@@ -91,6 +91,7 @@
                   type="primary"
                   size="small"
                   icon="search"
+                  html-type="submit"
                   @click="handleSubmit">{{ $t('label.search') }}</a-button>
               </div>
             </a-form>
@@ -462,10 +463,15 @@ export default {
     position: relative;
     display: block;
     min-height: 25px;
-    text-align: right;
 
-    button:not(:last-child) {
-      margin-right: 10px;
+    &-clear {
+      position: absolute;
+      left: 0;
+    }
+
+    &-search {
+      position: absolute;
+      right: 0;
     }
   }
 
