@@ -26,7 +26,7 @@
           <span slot="label">
             {{ $t('label.name') }}
             <a-tooltip :title="apiParams.name.description">
-              <a-icon type="info-circle" style="color: rgba(0,0,0,.45)" />
+              <a-icon type="info-circle" />
             </a-tooltip>
           </span>
           <a-input
@@ -39,7 +39,7 @@
           <span slot="label">
             {{ $t('label.displaytext') }}
             <a-tooltip :title="apiParams.displaytext.description">
-              <a-icon type="info-circle" style="color: rgba(0,0,0,.45)" />
+              <a-icon type="info-circle" />
             </a-tooltip>
           </span>
           <a-input
@@ -52,7 +52,7 @@
           <span slot="label">
             {{ $t('label.storagetype') }}
             <a-tooltip :title="apiParams.storagetype.description">
-              <a-icon type="info-circle" style="color: rgba(0,0,0,.45)" />
+              <a-icon type="info-circle" />
             </a-tooltip>
           </span>
           <a-radio-group
@@ -73,7 +73,7 @@
           <span slot="label">
             {{ $t('label.provisioningtype') }}
             <a-tooltip :title="apiParams.provisioningtype.description">
-              <a-icon type="info-circle" style="color: rgba(0,0,0,.45)" />
+              <a-icon type="info-circle" />
             </a-tooltip>
           </span>
           <a-radio-group
@@ -97,7 +97,7 @@
           <span slot="label">
             {{ $t('label.customdisksize') }}
             <a-tooltip :title="apiParams.customized.description">
-              <a-icon type="info-circle" style="color: rgba(0,0,0,.45)" />
+              <a-icon type="info-circle" />
             </a-tooltip>
           </span>
           <a-switch v-decorator="['customdisksize', { initialValue: this.isCustomDiskSize }]" :checked="this.isCustomDiskSize" @change="val => { this.isCustomDiskSize = val }" />
@@ -106,7 +106,7 @@
           <span slot="label">
             {{ $t('label.disksize') }}
             <a-tooltip :title="apiParams.disksize.description">
-              <a-icon type="info-circle" style="color: rgba(0,0,0,.45)" />
+              <a-icon type="info-circle" />
             </a-tooltip>
           </span>
           <a-input
@@ -147,7 +147,7 @@
           <span slot="label">
             {{ $t('label.diskbytesreadrate') }}
             <a-tooltip :title="apiParams.bytesreadrate.description">
-              <a-icon type="info-circle" style="color: rgba(0,0,0,.45)" />
+              <a-icon type="info-circle" />
             </a-tooltip>
           </span>
           <a-input
@@ -167,7 +167,7 @@
           <span slot="label">
             {{ $t('label.diskbyteswriterate') }}
             <a-tooltip :title="apiParams.byteswriterate.description">
-              <a-icon type="info-circle" style="color: rgba(0,0,0,.45)" />
+              <a-icon type="info-circle" />
             </a-tooltip>
           </span>
           <a-input
@@ -187,7 +187,7 @@
           <span slot="label">
             {{ $t('label.diskiopsreadrate') }}
             <a-tooltip :title="apiParams.iopsreadrate.description">
-              <a-icon type="info-circle" style="color: rgba(0,0,0,.45)" />
+              <a-icon type="info-circle" />
             </a-tooltip>
           </span>
           <a-input
@@ -207,7 +207,7 @@
           <span slot="label">
             {{ $t('label.diskiopswriterate') }}
             <a-tooltip :title="apiParams.iopswriterate.description">
-              <a-icon type="info-circle" style="color: rgba(0,0,0,.45)" />
+              <a-icon type="info-circle" />
             </a-tooltip>
           </span>
           <a-input
@@ -227,7 +227,7 @@
           <span slot="label">
             {{ $t('label.iscustomizeddiskiops') }}
             <a-tooltip :title="apiParams.customizediops.description">
-              <a-icon type="info-circle" style="color: rgba(0,0,0,.45)" />
+              <a-icon type="info-circle" />
             </a-tooltip>
           </span>
           <a-switch v-decorator="['iscustomizeddiskiops']" :checked="this.isCustomizedDiskIops" @change="val => { this.isCustomizedDiskIops = val }" />
@@ -236,7 +236,7 @@
           <span slot="label">
             {{ $t('label.diskiopsmin') }}
             <a-tooltip :title="apiParams.miniops.description">
-              <a-icon type="info-circle" style="color: rgba(0,0,0,.45)" />
+              <a-icon type="info-circle" />
             </a-tooltip>
           </span>
           <a-input
@@ -256,7 +256,7 @@
           <span slot="label">
             {{ $t('label.diskiopsmax') }}
             <a-tooltip :title="apiParams.maxiops.description">
-              <a-icon type="info-circle" style="color: rgba(0,0,0,.45)" />
+              <a-icon type="info-circle" />
             </a-tooltip>
           </span>
           <a-input
@@ -276,7 +276,7 @@
           <span slot="label">
             {{ $t('label.hypervisorsnapshotreserve') }}
             <a-tooltip :title="apiParams.hypervisorsnapshotreserve.description">
-              <a-icon type="info-circle" style="color: rgba(0,0,0,.45)" />
+              <a-icon type="info-circle" />
             </a-tooltip>
           </span>
           <a-input
@@ -296,7 +296,7 @@
           <span slot="label">
             {{ $t('label.writecachetype') }}
             <a-tooltip :title="apiParams.cachemode.description">
-              <a-icon type="info-circle" style="color: rgba(0,0,0,.45)" />
+              <a-icon type="info-circle" />
             </a-tooltip>
           </span>
           <a-radio-group
@@ -320,7 +320,7 @@
           <span slot="label">
             {{ $t('label.storagetags') }}
             <a-tooltip :title="apiParams.tags.description">
-              <a-icon type="info-circle" style="color: rgba(0,0,0,.45)" />
+              <a-icon type="info-circle" />
             </a-tooltip>
           </span>
           <a-select
@@ -346,7 +346,7 @@
           <span slot="label">
             {{ $t('label.domainid') }}
             <a-tooltip :title="apiParams.domainid.description">
-              <a-icon type="info-circle" style="color: rgba(0,0,0,.45)" />
+              <a-icon type="info-circle" />
             </a-tooltip>
           </span>
           <a-select
@@ -375,7 +375,7 @@
           <span slot="label">
             {{ $t('label.zoneid') }}
             <a-tooltip :title="apiParams.zoneid.description">
-              <a-icon type="info-circle" style="color: rgba(0,0,0,.45)" />
+              <a-icon type="info-circle" />
             </a-tooltip>
           </span>
           <a-select
@@ -410,7 +410,7 @@
           <span slot="label">
             {{ $t('label.vmware.storage.policy') }}
             <a-tooltip :title="apiParams.storagetype.description">
-              <a-icon type="info-circle" style="color: rgba(0,0,0,.45)" />
+              <a-icon type="info-circle" />
             </a-tooltip>
           </span>
           <a-select

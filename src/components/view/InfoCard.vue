@@ -597,7 +597,7 @@
                 @keyup.enter="handleInputConfirm"
                 compact>
                 <a-input ref="input" :value="inputKey" @change="handleKeyChange" style="width: 30%; text-align: center" :placeholder="$t('label.key')" />
-                <a-input style=" width: 30px; border-left: 0; pointer-events: none; backgroundColor: #fff" placeholder="=" disabled />
+                <a-input style=" width: 30px; border-left: 0; pointer-events: none; backgroundColor: transparent" placeholder="=" disabled />
                 <a-input :value="inputValue" @change="handleValueChange" style="width: 30%; text-align: center; border-left: 0" :placeholder="$t('label.value')" />
                 <a-button shape="circle" size="small" @click="handleInputConfirm">
                   <a-icon type="check"/>
@@ -607,7 +607,7 @@
                 </a-button>
               </a-input-group>
             </div>
-            <a-tag @click="showInput" style="background: #fff; borderStyle: dashed;" v-else-if="isAdminOrOwner() && 'createTags' in $store.getters.apis">
+            <a-tag @click="showInput" style="background: transparent; borderStyle: dashed;" v-else-if="isAdminOrOwner() && 'createTags' in $store.getters.apis">
               <a-icon type="plus" /> {{ $t('label.new.tag') }}
             </a-tag>
           </div>

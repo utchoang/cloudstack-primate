@@ -21,10 +21,6 @@
       <div class="user-layout-header">
         <img
           v-if="$config.banner"
-          :style="{
-            width: $config.theme['@banner-width'],
-            height: $config.theme['@banner-height']
-          }"
           :src="$config.banner"
           class="user-layout-logo"
           alt="logo">

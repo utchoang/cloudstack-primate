@@ -26,7 +26,7 @@
           <span slot="label">
             {{ $t('label.semanticversion') }}
             <a-tooltip :title="apiParams.semanticversion.description">
-              <a-icon type="info-circle" style="color: rgba(0,0,0,.45)" />
+              <a-icon type="info-circle" />
             </a-tooltip>
           </span>
           <a-input
@@ -39,7 +39,7 @@
           <span slot="label">
             {{ $t('label.name') }}
             <a-tooltip :title="apiParams.name.description">
-              <a-icon type="info-circle" style="color: rgba(0,0,0,.45)" />
+              <a-icon type="info-circle" />
             </a-tooltip>
           </span>
           <a-input
@@ -52,7 +52,7 @@
           <span slot="label">
             {{ $t('label.zoneid') }}
             <a-tooltip :title="apiParams.zoneid.description">
-              <a-icon type="info-circle" style="color: rgba(0,0,0,.45)" />
+              <a-icon type="info-circle" />
             </a-tooltip>
           </span>
           <a-select
@@ -85,7 +85,7 @@
           <span slot="label">
             {{ $t('label.url') }}
             <a-tooltip :title="apiParams.url.description">
-              <a-icon type="info-circle" style="color: rgba(0,0,0,.45)" />
+              <a-icon type="info-circle" />
             </a-tooltip>
           </span>
           <a-input
@@ -98,7 +98,7 @@
           <span slot="label">
             {{ $t('label.checksum') }}
             <a-tooltip :title="apiParams.checksum.description">
-              <a-icon type="info-circle" style="color: rgba(0,0,0,.45)" />
+              <a-icon type="info-circle" />
             </a-tooltip>
           </span>
           <a-input
@@ -111,7 +111,7 @@
           <span slot="label">
             {{ $t('label.mincpunumber') }}
             <a-tooltip :title="apiParams.mincpunumber.description">
-              <a-icon type="info-circle" style="color: rgba(0,0,0,.45)" />
+              <a-icon type="info-circle" />
             </a-tooltip>
           </span>
           <a-input
@@ -133,7 +133,7 @@
           <span slot="label">
             {{ $t('label.minmemory') }}
             <a-tooltip :title="apiParams.minmemory.description">
-              <a-icon type="info-circle" style="color: rgba(0,0,0,.45)" />
+              <a-icon type="info-circle" />
             </a-tooltip>
           </span>
           <a-input

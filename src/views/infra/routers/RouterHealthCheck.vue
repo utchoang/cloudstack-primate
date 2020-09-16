@@ -56,7 +56,7 @@
               <span slot="label">
                 {{ $t('label.perform.fresh.checks') }}
                 <a-tooltip :title="apiParams.performfreshchecks.description">
-                  <a-icon type="info-circle" style="color: rgba(0,0,0,.45)" />
+                  <a-icon type="info-circle" />
                 </a-tooltip>
               </span>
               <a-switch

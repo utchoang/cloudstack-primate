@@ -157,7 +157,7 @@
               <span slot="label">
                 {{ $t('label.' + field.name) }}
                 <a-tooltip :title="field.description">
-                  <a-icon type="info-circle" style="color: rgba(0,0,0,.45)" />
+                  <a-icon type="info-circle" />
                 </a-tooltip>
               </span>
 

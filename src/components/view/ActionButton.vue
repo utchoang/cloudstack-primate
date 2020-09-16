@@ -78,7 +78,7 @@ export default {
   },
   data () {
     return {
-      actionBadge: []
+      actionBadge: {}
     }
   },
   mounted () {
@@ -130,7 +130,7 @@ export default {
       this.$emit('exec-action', action)
     },
     handleShowBadge () {
-      const dataBadge = {}
+      this.actionBadge = {}
       const arrAsync = []
       const actionBadge = this.actions.filter(action => action.showBadge === true)
 
@@ -155,7 +155,7 @@ export default {
                 }
               }
 
-              if (json[responseJsonName].count && json[responseJsonName].count > 0) {
+              if (json[responseJsonName] && json[responseJsonName].count && json[responseJsonName].count > 0) {
                 response.count = json[responseJsonName].count
               }
 
@@ -168,12 +168,10 @@ export default {
 
         Promise.all(arrAsync).then(response => {
           for (let j = 0; j < response.length; j++) {
-            this.$set(dataBadge, response[j].api, {})
-            this.$set(dataBadge[response[j].api], 'badgeNum', response[j].count)
+            this.$set(this.actionBadge, response[j].api, {})
+            this.$set(this.actionBadge[response[j].api], 'badgeNum', response[j].count)
           }
-        })
-
-        this.actionBadge = dataBadge
+        }).catch(() => {})
       }
     }
   }

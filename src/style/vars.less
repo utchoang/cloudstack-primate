@@ -15,8 +15,6 @@
 // specific language governing permissions and limitations
 // under the License.
 
-// @import "~ant-design-vue/lib/style/themes/default.less";
-
 @logo-width: 256px;
 @logo-height: 64px;
 @banner-width: 450px;
@@ -24,12 +22,12 @@
 @error-width: 256px;
 @error-height: 256px;
 
-@layout-body-background: #f0f2f5;
+@background-color: #f0f2f5;
+@background-color-secondary: #f0f2f5;
 @primary-color: #1890ff;
-@link-color: #1890ff;
-@link-hover-color: #1890ff;
-@link-active-color: #1890ff;
-@processing-color: #1890ff;
+@link-color: @primary-color;
+@link-hover-color: #40a9ff;
+@processing-color: @primary-color;
 @success-color: #52c41a;
 @warning-color: #faad14;
 @error-color: #f5222d;
@@ -41,6 +39,7 @@
 @border-color-base: #d9d9d9;
 @border-radius-base: 4px;
 @box-shadow-base: 0 2px 8px rgba(0, 0, 0, 0.15);
+@loading-color: @primary-color;
 
 .ant-layout-sider-children .logo-image {
   width: @logo-width;
@@ -72,6 +71,261 @@ a:hover {
   color: @link-hover-color;
 }
 
-a:active {
-  color: @link-active-color;
+.ant-message-info .anticon,
+.ant-message-loading .anticon {
+  color: @loading-color;
+}
+
+#nprogress {
+  .bar {
+    background-color: @loading-color;
+  }
+}
+
+.ant-layout,
+.ant-layout-footer {
+  background-color: @background-color;
+}
+
+.ant-card {
+  background-color: @background-color-secondary;
+}
+
+.ant-card-head {
+  color: @text-color;
+}
+
+.layout.ant-layout {
+  .header {
+    background-color: @background-color-secondary;
+    color: @text-color;
+    box-shadow: 0 1px 4px color(~`colorPalette("@{background-color}", 7)`);
+
+    .user-menu {
+      .action {
+        color: @text-color;
+      }
+    }
+  }
+}
+
+.ant-select-selection,
+.ant-input-group-addon,
+.ant-input,
+.ant-input-number {
+  background-color: transparent;
+}
+
+.has-error .ant-input, .has-error .ant-input:hover {
+  background-color: transparent;
+}
+
+.ant-switch {
+  background-color: color(~`colorPalette("@{background-color}", 7)`);
+  color: color(~`colorPalette("@{text-color}", 10)`);
+
+  &-checked {
+    background-color: @primary-color;
+  }
+}
+
+.ant-btn {
+  &:not(.ant-btn-primary):not(.ant-btn-danger) {
+    background-color: transparent;
+  }
+
+  &-dashed-disabled,
+  &-dashed.disabled,
+  &-dashed[disabled],
+  &-dashed-disabled:hover,
+  &-dashed.disabled:hover,
+  &-dashed[disabled]:hover,
+  &-dashed-disabled:focus,
+  &-dashed.disabled:focus,
+  &-dashed[disabled]:focus,
+  &-dashed-disabled:active,
+  &-dashed.disabled:active,
+  &-dashed[disabled]:active,
+  &-dashed-disabled.active,
+  &-dashed.disabled.active,
+  &-dashed[disabled].active {
+    color: @text-color;
+  }
+}
+
+.ant-layout > .sider.light {
+  background-color: @background-color-secondary;
+
+  .logo {
+    background-color: @background-color-secondary;
+  }
+
+  .ant-menu {
+    background-color: @background-color-secondary;
+  }
+}
+
+
+.ant-dropdown-menu,
+.ant-popover-inner,
+.ant-select-dropdown-menu-item {
+  background-color: @background-color-secondary;
+}
+
+.ant-menu-submenu-popup,
+.ant-menu-submenu > .ant-menu {
+  background-color: @background-color-secondary;
+}
+
+.ant-dropdown-menu-item:hover,
+.ant-dropdown-menu-submenu-title:hover {
+  color: @primary-color;
+}
+
+.ant-select-dropdown-menu-item:hover:not(.ant-select-dropdown-menu-item-disabled),
+.ant-select-dropdown-menu-item-active:not(.ant-select-dropdown-menu-item-disabled) {
+  color: @primary-color;
+}
+
+.ant-tooltip {
+  .ant-tooltip-inner {
+    background-color: color(~`colorPalette("@{background-color}", 10)`);
+  }
+
+  .ant-tooltip-arrow::before {
+    background-color: color(~`colorPalette("@{background-color}", 10)`);
+  }
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: @text-color;
+}
+
+.ant-table-thead > tr > th,
+.ant-table-tbody > tr > td,
+.ant-table-tfoot > tr > td > {
+  background-color: @background-color-secondary;
+  color: @text-color;
+}
+
+.ant-table-tbody > tr.ant-table-row-selected td {
+  color: color(~`colorPalette("@{text-color}", 0)`);
+
+  .ant-badge-status-text {
+    color: color(~`colorPalette("@{text-color}", 0)`);
+  }
+}
+
+.ant-table-placeholder {
+  background-color: @background-color-secondary;
+}
+
+.ant-table-thead > tr.ant-table-row-hover:not(.ant-table-expanded-row):not(.ant-table-row-selected) > td,
+.ant-table-tbody > tr.ant-table-row-hover:not(.ant-table-expanded-row):not(.ant-table-row-selected) > td,
+.ant-table-thead > tr:hover:not(.ant-table-expanded-row):not(.ant-table-row-selected) > td,
+.ant-table-tbody > tr:hover:not(.ant-table-expanded-row):not(.ant-table-row-selected) > td {
+  color: color(~`colorPalette("@{text-color}", 0)`);
+
+  .ant-badge-status-text {
+    color: color(~`colorPalette("@{text-color}", 0)`);
+  }
+}
+
+.ant-table-thead > tr > th.ant-table-column-has-actions.ant-table-column-has-sorters:hover {
+  color: color(~`colorPalette("@{text-color}", 0)`);
+}
+
+.ant-form-item-label > label,
+.ant-steps-item-process > .ant-steps-item-container > .ant-steps-item-content > .ant-steps-item-title {
+  color: @text-color;
+}
+
+.ant-steps-item-wait .ant-steps-item-icon {
+  background-color: transparent;
+  border-color: @text-color;
+}
+
+.ant-steps-item-wait .ant-steps-item-icon > .ant-steps-icon {
+  color: @text-color;
+}
+
+.vm-info-card {
+  .resource-detail-item__details, .resource-detail-item {
+    a {
+      color: @text-color;
+    }
+  }
+}
+
+.ant-pagination-item-active,
+.ant-pagination-options-quick-jumper input,
+.ant-input-disabled {
+  background-color: @background-color-secondary;
+}
+
+
+.ant-tree.ant-tree-show-line li span.ant-tree-switcher {
+  background-color: @background-color-secondary;
+}
+
+.ant-tree-node-content-wrapper {
+  .ant-tree-icon__customize {
+    background-color: transparent;
+    color: @text-color;
+  }
+}
+
+.ant-tree li .ant-tree-node-content-wrapper.ant-tree-node-selected {
+  background: color(~`colorPalette("@{primary-color}", 1)`);
+  color: @primary-color;
+}
+
+.ant-tree li .ant-tree-node-content-wrapper:hover {
+  background: color(~`colorPalette("@{primary-color}", 1)`);
+  color: @primary-color;
+
+  .ant-tree-icon__customize {
+    background: color(~`colorPalette("@{primary-color}", 1)`);
+    color: @primary-color;
+  }
+}
+
+.ant-modal {
+  .ant-modal-content {
+    background-color: @background-color-secondary;
+  }
+
+  .ant-modal-header {
+    background-color: transparent;
+  }
+
+  .ant-modal-title {
+    color: @text-color;
+  }
+}
+
+.ant-message {
+  &-notice {
+    &-content {
+      background-color: @background-color-secondary;
+    }
+  }
+}
+
+.ant-tag {
+  background-color: transparent;
+}
+
+.ant-upload.ant-upload-drag {
+  background-color: transparent;
+
+  p.ant-upload-text{
+    color: @text-color;
+  }
+}
+
+.test {
+  path {
+    fill: @text-color;
+  }
 }
