@@ -20,17 +20,29 @@
     <div class="img" v-if="type == '403'">
       <img
         v-if="$config.error['403']"
-        :src="$config.error['403']"/>
+        :src="$config.error['403']"
+        :style="{
+          width: $config.theme['@error-width'],
+          height: $config.theme['@error-height']
+        }"/>
     </div>
     <div class="img" v-if="type == '404'">
       <img
         v-if="$config.error['404']"
-        :src="$config.error['404']"/>
+        :src="$config.error['404']"
+        :style="{
+          width: $config.theme['@error-width'],
+          height: $config.theme['@error-height']
+        }"/>
     </div>
     <div class="img" v-if="type == '500'">
       <img
         v-if="$config.error['500']"
-        :src="$config.error['500']"/>
+        :src="$config.error['500']"
+        :style="{
+          width: $config.theme['@error-width'],
+          height: $config.theme['@error-height']
+        }"/>
     </div>
     <div class="content">
       <h1>{{ config[type].title }}</h1>

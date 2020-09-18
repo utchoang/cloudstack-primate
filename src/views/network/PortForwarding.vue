@@ -29,7 +29,7 @@
             <a-input
               placeholder="-"
               disabled
-              style="width: 30px; border-left: 0; border-right: 0; pointer-events: none; backgroundColor: #fff; text-align:
+              style="width: 30px; border-left: 0; border-right: 0; pointer-events: none; ; text-align:
               center; margin-right: 0;"></a-input>
             <a-input
               v-model="newRule.privateendport"
@@ -47,7 +47,7 @@
             <a-input
               placeholder="-"
               disabled
-              style="width: 30px; border-left: 0; border-right: 0; pointer-events: none; backgroundColor: #fff;
+              style="width: 30px; border-left: 0; border-right: 0; pointer-events: none; ;
               text-align: center; margin-right: 0;"></a-input>
             <a-input
               v-model="newRule.publicendport"

@@ -36,8 +36,7 @@ export default {
     }
   },
   created () {
-    const theme = this.$config.theme.mode === 'dark' ? this.$config.theme.dark : this.$config.theme.light
-    window.less.modifyVars(theme)
+    window.less.modifyVars(this.$config.theme)
     console.log('config and theme applied')
   }
 }

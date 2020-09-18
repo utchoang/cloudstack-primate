@@ -19,6 +19,10 @@
   <div class="logo">
     <img
       v-if="$config.logo"
+      :style="{
+        width: $config.theme['@logo-width'],
+        height: $config.theme['@logo-height']
+      }"
       :src="$config.logo"
       class="logo-image" />
   </div>
@@ -52,12 +56,10 @@ export default {
   line-height: 64px;
   -webkit-transition: all .3s;
   transition: all .3s;
-  background: #002140;
   overflow: hidden;
 }
 
 .sider.light .logo {
-  background: #fff;
   box-shadow: 1px 1px 0px 0px #e8e8e8;
 }
 

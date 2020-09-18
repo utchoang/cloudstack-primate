@@ -26,7 +26,7 @@
           <span slot="label">
             {{ $t('label.name') }}
             <a-tooltip :title="apiParams.name.description">
-              <a-icon type="info-circle" />
+              <a-icon type="info-circle" style="color: rgba(0,0,0,.45)" />
             </a-tooltip>
           </span>
           <a-input
@@ -39,7 +39,7 @@
           <span slot="label">
             {{ $t('label.displaytext') }}
             <a-tooltip :title="apiParams.displaytext.description">
-              <a-icon type="info-circle" />
+              <a-icon type="info-circle" style="color: rgba(0,0,0,.45)" />
             </a-tooltip>
           </span>
           <a-input
@@ -52,7 +52,7 @@
           <span slot="label">
             {{ $t('label.systemvmtype') }}
             <a-tooltip :title="apiParams.systemvmtype.description">
-              <a-icon type="info-circle" />
+              <a-icon type="info-circle" style="color: rgba(0,0,0,.45)" />
             </a-tooltip>
           </span>
           <a-select
@@ -74,7 +74,7 @@
           <span slot="label">
             {{ $t('label.storagetype') }}
             <a-tooltip :title="apiParams.storagetype.description">
-              <a-icon type="info-circle" />
+              <a-icon type="info-circle" style="color: rgba(0,0,0,.45)" />
             </a-tooltip>
           </span>
           <a-radio-group
@@ -95,7 +95,7 @@
           <span slot="label">
             {{ $t('label.provisioningtype') }}
             <a-tooltip :title="apiParams.provisioningtype.description">
-              <a-icon type="info-circle" />
+              <a-icon type="info-circle" style="color: rgba(0,0,0,.45)" />
             </a-tooltip>
           </span>
           <a-radio-group
@@ -119,7 +119,7 @@
           <span slot="label">
             {{ $t('label.cachemode') }}
             <a-tooltip :title="apiParams.cachemode.description">
-              <a-icon type="info-circle" />
+              <a-icon type="info-circle" style="color: rgba(0,0,0,.45)" />
             </a-tooltip>
           </span>
           <a-radio-group
@@ -161,7 +161,7 @@
           <span slot="label">
             {{ $t('label.cpunumber') }}
             <a-tooltip :title="apiParams.cpunumber.description">
-              <a-icon type="info-circle" />
+              <a-icon type="info-circle" style="color: rgba(0,0,0,.45)" />
             </a-tooltip>
           </span>
           <a-input
@@ -183,7 +183,7 @@
           <span slot="label">
             {{ $t('label.cpuspeed') }}
             <a-tooltip :title="apiParams.cpuspeed.description">
-              <a-icon type="info-circle" />
+              <a-icon type="info-circle" style="color: rgba(0,0,0,.45)" />
             </a-tooltip>
           </span>
           <a-input
@@ -205,7 +205,7 @@
           <span slot="label">
             {{ $t('label.mincpunumber') }}
             <a-tooltip :title="apiParams.mincpunumber.description">
-              <a-icon type="info-circle" />
+              <a-icon type="info-circle" style="color: rgba(0,0,0,.45)" />
             </a-tooltip>
           </span>
           <a-input
@@ -227,7 +227,7 @@
           <span slot="label">
             {{ $t('label.maxcpunumber') }}
             <a-tooltip :title="apiParams.maxcpunumber.description">
-              <a-icon type="info-circle" />
+              <a-icon type="info-circle" style="color: rgba(0,0,0,.45)" />
             </a-tooltip>
           </span>
           <a-input
@@ -249,7 +249,7 @@
           <span slot="label">
             {{ $t('label.memory.mb') }}
             <a-tooltip :title="apiParams.memory.description">
-              <a-icon type="info-circle" />
+              <a-icon type="info-circle" style="color: rgba(0,0,0,.45)" />
             </a-tooltip>
           </span>
           <a-input
@@ -271,7 +271,7 @@
           <span slot="label">
             {{ $t('label.minmemory') }}
             <a-tooltip :title="apiParams.minmemory.description">
-              <a-icon type="info-circle" />
+              <a-icon type="info-circle" style="color: rgba(0,0,0,.45)" />
             </a-tooltip>
           </span>
           <a-input
@@ -293,7 +293,7 @@
           <span slot="label">
             {{ $t('label.maxmemory') }}
             <a-tooltip :title="apiParams.maxmemory.description">
-              <a-icon type="info-circle" />
+              <a-icon type="info-circle" style="color: rgba(0,0,0,.45)" />
             </a-tooltip>
           </span>
           <a-input
@@ -315,7 +315,7 @@
           <span slot="label">
             {{ $t('label.networkrate') }}
             <a-tooltip :title="apiParams.provisioningtype.description">
-              <a-icon type="info-circle" />
+              <a-icon type="info-circle" style="color: rgba(0,0,0,.45)" />
             </a-tooltip>
           </span>
           <a-input
@@ -355,7 +355,7 @@
           <span slot="label">
             {{ $t('label.diskbytesreadrate') }}
             <a-tooltip :title="apiParams.bytesreadrate.description">
-              <a-icon type="info-circle" />
+              <a-icon type="info-circle" style="color: rgba(0,0,0,.45)" />
             </a-tooltip>
           </span>
           <a-input
@@ -375,7 +375,7 @@
           <span slot="label">
             {{ $t('label.diskbyteswriterate') }}
             <a-tooltip :title="apiParams.byteswriterate.description">
-              <a-icon type="info-circle" />
+              <a-icon type="info-circle" style="color: rgba(0,0,0,.45)" />
             </a-tooltip>
           </span>
           <a-input
@@ -395,7 +395,7 @@
           <span slot="label">
             {{ $t('label.diskiopsreadrate') }}
             <a-tooltip :title="apiParams.iopsreadrate.description">
-              <a-icon type="info-circle" />
+              <a-icon type="info-circle" style="color: rgba(0,0,0,.45)" />
             </a-tooltip>
           </span>
           <a-input
@@ -415,7 +415,7 @@
           <span slot="label">
             {{ $t('label.diskiopswriterate') }}
             <a-tooltip :title="apiParams.iopswriterate.description">
-              <a-icon type="info-circle" />
+              <a-icon type="info-circle" style="color: rgba(0,0,0,.45)" />
             </a-tooltip>
           </span>
           <a-input
@@ -435,7 +435,7 @@
           <span slot="label">
             {{ $t('label.iscustomizeddiskiops') }}
             <a-tooltip :title="apiParams.customizediops.description">
-              <a-icon type="info-circle" />
+              <a-icon type="info-circle" style="color: rgba(0,0,0,.45)" />
             </a-tooltip>
           </span>
           <a-switch v-decorator="['iscustomizeddiskiops', {initialValue: this.isCustomizedDiskIops}]" :defaultChecked="this.isCustomizedDiskIops" @change="val => { this.isCustomizedDiskIops = val }" />
@@ -444,7 +444,7 @@
           <span slot="label">
             {{ $t('label.diskiopsmin') }}
             <a-tooltip :title="apiParams.miniops.description">
-              <a-icon type="info-circle" />
+              <a-icon type="info-circle" style="color: rgba(0,0,0,.45)" />
             </a-tooltip>
           </span>
           <a-input
@@ -464,7 +464,7 @@
           <span slot="label">
             {{ $t('label.diskiopsmax') }}
             <a-tooltip :title="apiParams.maxiops.description">
-              <a-icon type="info-circle" />
+              <a-icon type="info-circle" style="color: rgba(0,0,0,.45)" />
             </a-tooltip>
           </span>
           <a-input
@@ -484,7 +484,7 @@
           <span slot="label">
             {{ $t('label.hypervisorsnapshotreserve') }}
             <a-tooltip :title="apiParams.hypervisorsnapshotreserve.description">
-              <a-icon type="info-circle" />
+              <a-icon type="info-circle" style="color: rgba(0,0,0,.45)" />
             </a-tooltip>
           </span>
           <a-input
@@ -504,7 +504,7 @@
           <span slot="label">
             {{ $t('label.offerha') }}
             <a-tooltip :title="apiParams.offerha.description">
-              <a-icon type="info-circle" />
+              <a-icon type="info-circle" style="color: rgba(0,0,0,.45)" />
             </a-tooltip>
           </span>
           <a-switch v-decorator="['offerha', {initialValue: false}]" />
@@ -513,7 +513,7 @@
           <span slot="label">
             {{ $t('label.hosttags') }}
             <a-tooltip :title="apiParams.hosttags.description">
-              <a-icon type="info-circle" />
+              <a-icon type="info-circle" style="color: rgba(0,0,0,.45)" />
             </a-tooltip>
           </span>
           <a-input
@@ -524,7 +524,7 @@
           <span slot="label">
             {{ $t('label.storagetags') }}
             <a-tooltip :title="apiParams.tags.description">
-              <a-icon type="info-circle" />
+              <a-icon type="info-circle" style="color: rgba(0,0,0,.45)" />
             </a-tooltip>
           </span>
           <a-select
@@ -547,7 +547,7 @@
           <span slot="label">
             {{ $t('label.limitcpuuse') }}
             <a-tooltip :title="apiParams.limitcpuuse.description">
-              <a-icon type="info-circle" />
+              <a-icon type="info-circle" style="color: rgba(0,0,0,.45)" />
             </a-tooltip>
           </span>
           <a-switch v-decorator="['limitcpuuse', {initialValue: false}]" />
@@ -556,7 +556,7 @@
           <span slot="label">
             {{ $t('label.isvolatile') }}
             <a-tooltip :title="apiParams.isvolatile.description">
-              <a-icon type="info-circle" />
+              <a-icon type="info-circle" style="color: rgba(0,0,0,.45)" />
             </a-tooltip>
           </span>
           <a-switch v-decorator="['isvolatile', {initialValue: false}]" />
@@ -565,7 +565,7 @@
           <span slot="label">
             {{ $t('label.deploymentplanner') }}
             <a-tooltip :title="apiParams.deploymentplanner.description">
-              <a-icon type="info-circle" />
+              <a-icon type="info-circle" style="color: rgba(0,0,0,.45)" />
             </a-tooltip>
           </span>
           <a-select
@@ -636,7 +636,7 @@
           <span slot="label">
             {{ $t('label.domain') }}
             <a-tooltip :title="apiParams.domainid.description">
-              <a-icon type="info-circle" />
+              <a-icon type="info-circle" style="color: rgba(0,0,0,.45)" />
             </a-tooltip>
           </span>
           <a-select
@@ -665,7 +665,7 @@
           <span slot="label">
             {{ $t('label.zoneid') }}
             <a-tooltip :title="apiParams.zoneid.description">
-              <a-icon type="info-circle" />
+              <a-icon type="info-circle" style="color: rgba(0,0,0,.45)" />
             </a-tooltip>
           </span>
           <a-select
@@ -700,7 +700,7 @@
           <span slot="label">
             {{ $t('label.vmware.storage.policy') }}
             <a-tooltip :title="apiParams.storagetype.description">
-              <a-icon type="info-circle" />
+              <a-icon type="info-circle" style="color: rgba(0,0,0,.45)" />
             </a-tooltip>
           </span>
           <a-select

@@ -23,7 +23,7 @@
           <span slot="label">
             {{ $t('label.scope') }}
             <a-tooltip :title="apiParams.scope.description">
-              <a-icon type="info-circle" />
+              <a-icon type="info-circle" style="color: rgba(0,0,0,.45)" />
             </a-tooltip>
           </span>
           <a-select v-decorator="['scope', { initialValue: 'cluster' }]" @change="val => { this.scope = val }">
@@ -36,7 +36,7 @@
             <span slot="label">
               {{ $t('label.hypervisor') }}
               <a-tooltip :title="apiParams.hypervisor.description">
-                <a-icon type="info-circle" />
+                <a-icon type="info-circle" style="color: rgba(0,0,0,.45)" />
               </a-tooltip>
             </span>
             <a-select
@@ -52,7 +52,7 @@
           <span slot="label">
             {{ $t('label.zoneid') }}
             <a-tooltip :title="apiParams.zoneid.description">
-              <a-icon type="info-circle" />
+              <a-icon type="info-circle" style="color: rgba(0,0,0,.45)" />
             </a-tooltip>
           </span>
           <a-select
@@ -68,7 +68,7 @@
             <span slot="label">
               {{ $t('label.podid') }}
               <a-tooltip :title="apiParams.podid.description">
-                <a-icon type="info-circle" />
+                <a-icon type="info-circle" style="color: rgba(0,0,0,.45)" />
               </a-tooltip>
             </span>
             <a-select
@@ -83,7 +83,7 @@
             <span slot="label">
               {{ $t('label.clusterid') }}
               <a-tooltip :title="apiParams.clusterid.description">
-                <a-icon type="info-circle" />
+                <a-icon type="info-circle" style="color: rgba(0,0,0,.45)" />
               </a-tooltip>
             </span>
             <a-select
@@ -110,7 +110,7 @@
           <span slot="label">
             {{ $t('label.name') }}
             <a-tooltip :title="apiParams.name.description">
-              <a-icon type="info-circle" />
+              <a-icon type="info-circle" style="color: rgba(0,0,0,.45)" />
             </a-tooltip>
           </span>
           <a-input v-decorator="['name', { rules: [{ required: true, message: `${$t('label.required')}` }] }]"/>
@@ -119,7 +119,7 @@
           <span slot="label">
             {{ $t('label.protocol') }}
             <a-tooltip :title="$t('message.protocol.description')">
-              <a-icon type="info-circle" />
+              <a-icon type="info-circle" style="color: rgba(0,0,0,.45)" />
             </a-tooltip>
           </span>
           <a-select
@@ -137,7 +137,7 @@
             <span slot="label">
               {{ $t('label.server') }}
               <a-tooltip :title="$t('message.server.description')">
-                <a-icon type="info-circle" />
+                <a-icon type="info-circle" style="color: rgba(0,0,0,.45)" />
               </a-tooltip>
             </span>
             <a-input v-decorator="['server', { rules: [{ required: true, message: `${$t('label.required')}` }] }]" />
@@ -148,7 +148,7 @@
             <span slot="label">
               {{ $t('label.path') }}
               <a-tooltip :title="$t('message.path.description')">
-                <a-icon type="info-circle" />
+                <a-icon type="info-circle" style="color: rgba(0,0,0,.45)" />
               </a-tooltip>
             </span>
             <a-input v-decorator="['path', { rules: [{ required: true, message: `${$t('label.required')}` }] }]" />
@@ -178,7 +178,7 @@
             <span slot="label">
               {{ $t('label.vcenterdatacenter') }}
               <a-tooltip :title="$t('message.datacenter.description')">
-                <a-icon type="info-circle" />
+                <a-icon type="info-circle" style="color: rgba(0,0,0,.45)" />
               </a-tooltip>
             </span>
             <a-input v-decorator="['vCenterDataCenter', { rules: [{ required: true, message: `${$t('label.required')}` }] }]"/>
@@ -187,7 +187,7 @@
             <span slot="label">
               {{ $t('label.vcenterdatastore') }}
               <a-tooltip :title="$t('message.datastore.description')">
-                <a-icon type="info-circle" />
+                <a-icon type="info-circle" style="color: rgba(0,0,0,.45)" />
               </a-tooltip>
             </span>
             <a-input v-decorator="['vCenterDataStore', { rules: [{ required: true, message: `${$t('label.required')}` }] }]"/>
@@ -197,7 +197,7 @@
           <span slot="label">
             {{ $t('label.providername') }}
             <a-tooltip :title="apiParams.provider.description">
-              <a-icon type="info-circle" />
+              <a-icon type="info-circle" style="color: rgba(0,0,0,.45)" />
             </a-tooltip>
           </span>
           <a-select
@@ -213,7 +213,7 @@
             <span slot="label">
               {{ $t('label.ismanaged') }}
               <a-tooltip :title="apiParams.managed.description">
-                <a-icon type="info-circle" />
+                <a-icon type="info-circle" style="color: rgba(0,0,0,.45)" />
               </a-tooltip>
             </span>
             <a-checkbox-group v-decorator="['managed']" >
@@ -224,7 +224,7 @@
             <span slot="label">
               {{ $t('label.capacitybytes') }}
               <a-tooltip :title="apiParams.capacitybytes.description">
-                <a-icon type="info-circle" />
+                <a-icon type="info-circle" style="color: rgba(0,0,0,.45)" />
               </a-tooltip>
             </span>
             <a-input v-decorator="['capacityBytes']" />
@@ -233,7 +233,7 @@
             <span slot="label">
               {{ $t('label.capacityiops') }}
               <a-tooltip :title="apiParams.capacityiops.description">
-                <a-icon type="info-circle" />
+                <a-icon type="info-circle" style="color: rgba(0,0,0,.45)" />
               </a-tooltip>
             </span>
             <a-input v-decorator="['capacityIops']" />
@@ -242,7 +242,7 @@
             <span slot="label">
               {{ $t('label.url') }}
               <a-tooltip :title="apiParams.url.description">
-                <a-icon type="info-circle" />
+                <a-icon type="info-circle" style="color: rgba(0,0,0,.45)" />
               </a-tooltip>
             </span>
             <a-input v-decorator="['url']" />
@@ -275,7 +275,7 @@
           <span slot="label">
             {{ $t('label.storagetags') }}
             <a-tooltip :title="apiParams.tags.description">
-              <a-icon type="info-circle" />
+              <a-icon type="info-circle" style="color: rgba(0,0,0,.45)" />
             </a-tooltip>
           </span>
           <a-select

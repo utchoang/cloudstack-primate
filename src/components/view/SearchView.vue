@@ -70,7 +70,7 @@
                       size="small"
                       compact>
                       <a-input ref="input" :value="inputKey" @change="e => inputKey = e.target.value" style="width: 50px; text-align: center" :placeholder="$t('label.key')" />
-                      <a-input style=" width: 20px; border-left: 0; pointer-events: none; backgroundColor: transparent;" placeholder="=" disabled />
+                      <a-input style=" width: 20px; border-left: 0; pointer-events: none;" placeholder="=" disabled />
                       <a-input :value="inputValue" @change="handleValueChange" style="width: 50px; text-align: center; border-left: 0" :placeholder="$t('label.value')" />
                       <a-button shape="circle" size="small" @click="inputKey = inputValue = ''">
                         <a-icon type="close"/>

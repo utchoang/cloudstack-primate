@@ -24,7 +24,7 @@
           <span slot="label">
             {{ $t('label.name') }}
             <a-tooltip :title="apiParams.name.description">
-              <a-icon type="info-circle" />
+              <a-icon type="info-circle" style="color: rgba(0,0,0,.45)" />
             </a-tooltip>
           </span>
           <a-input
@@ -37,7 +37,7 @@
           <span slot="label">
             {{ $t('label.displaytext') }}
             <a-tooltip :title="apiParams.displaytext.description">
-              <a-icon type="info-circle" />
+              <a-icon type="info-circle" style="color: rgba(0,0,0,.45)" />
             </a-tooltip>
           </span>
           <a-input
@@ -50,7 +50,7 @@
           <span slot="label">
             {{ $t('label.zoneid') }}
             <a-tooltip :title="apiParams.zoneid.description">
-              <a-icon type="info-circle" />
+              <a-icon type="info-circle" style="color: rgba(0,0,0,.45)" />
             </a-tooltip>
           </span>
           <a-select
@@ -69,7 +69,7 @@
           <span slot="label">
             {{ $t('label.cidr') }}
             <a-tooltip :title="apiParams.cidr.description">
-              <a-icon type="info-circle" />
+              <a-icon type="info-circle" style="color: rgba(0,0,0,.45)" />
             </a-tooltip>
           </span>
           <a-input
@@ -82,7 +82,7 @@
           <span slot="label">
             {{ $t('label.networkdomain') }}
             <a-tooltip :title="apiParams.networkdomain.description">
-              <a-icon type="info-circle" />
+              <a-icon type="info-circle" style="color: rgba(0,0,0,.45)" />
             </a-tooltip>
           </span>
           <a-input
@@ -93,7 +93,7 @@
           <span slot="label">
             {{ $t('label.vpcofferingid') }}
             <a-tooltip :title="apiParams.vpcofferingid.description">
-              <a-icon type="info-circle" />
+              <a-icon type="info-circle" style="color: rgba(0,0,0,.45)" />
             </a-tooltip>
           </span>
           <a-select
@@ -110,7 +110,7 @@
           <span slot="label">
             {{ $t('label.start') }}
             <a-tooltip :title="apiParams.start.description">
-              <a-icon type="info-circle" />
+              <a-icon type="info-circle" style="color: rgba(0,0,0,.45)" />
             </a-tooltip>
           </span>
           <a-switch v-decorator="['start', {initialValue: true}]" defaultChecked />

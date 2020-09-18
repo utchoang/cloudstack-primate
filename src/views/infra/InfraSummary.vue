@@ -53,7 +53,7 @@
                 <span slot="label">
                   {{ $t('label.root.certificate') }}
                   <a-tooltip placement="bottom" :title="apiParams.name.description">
-                    <a-icon type="info-circle" />
+                    <a-icon type="info-circle" style="color: rgba(0,0,0,.45)" />
                   </a-tooltip>
                 </span>
                 <a-textarea
@@ -77,7 +77,7 @@
                   <span slot="label">
                     {{ $t('label.intermediate.certificate') + ` ${index + 1} ` }}
                     <a-tooltip placement="bottom" :title="apiParams.id.description">
-                      <a-icon type="info-circle" />
+                      <a-icon type="info-circle" style="color: rgba(0,0,0,.45)" />
                     </a-tooltip>
                   </span>
                   <a-textarea
@@ -104,7 +104,7 @@
                 <span slot="label">
                   {{ $t('label.server.certificate') }}
                   <a-tooltip placement="bottom" :title="apiParams.certificate.description">
-                    <a-icon type="info-circle" />
+                    <a-icon type="info-circle" style="color: rgba(0,0,0,.45)" />
                   </a-tooltip>
                 </span>
                 <a-textarea
@@ -123,7 +123,7 @@
                 <span slot="label">
                   {{ $t('label.pkcs.private.certificate') }}
                   <a-tooltip placement="bottom" :title="apiParams.privatekey.description">
-                    <a-icon type="info-circle" />
+                    <a-icon type="info-circle" style="color: rgba(0,0,0,.45)" />
                   </a-tooltip>
                 </span>
                 <a-textarea
@@ -142,7 +142,7 @@
                 <span slot="label">
                   {{ $t('label.domain.suffix') }}
                   <a-tooltip placement="bottom" :title="apiParams.domainsuffix.description">
-                    <a-icon type="info-circle" />
+                    <a-icon type="info-circle" style="color: rgba(0,0,0,.45)" />
                   </a-tooltip>
                 </span>
                 <a-input

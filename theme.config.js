@@ -29,6 +29,9 @@ const options = {
   themeVariables: [
     '@background-color',
     '@background-color-secondary',
+    '@logo-background-color',
+    '@navigation-background-color',
+    '@navigation-text-color',
     '@primary-color',
     '@link-color',
     '@link-hover-color',

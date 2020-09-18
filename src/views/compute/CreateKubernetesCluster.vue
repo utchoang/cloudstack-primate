@@ -26,7 +26,7 @@
           <span slot="label">
             {{ $t('label.name') }}
             <a-tooltip :title="apiParams.name.description">
-              <a-icon type="info-circle" />
+              <a-icon type="info-circle" style="color: rgba(0,0,0,.45)" />
             </a-tooltip>
           </span>
           <a-input
@@ -39,7 +39,7 @@
           <span slot="label">
             {{ $t('label.description') }}
             <a-tooltip :title="apiParams.description.description">
-              <a-icon type="info-circle" />
+              <a-icon type="info-circle" style="color: rgba(0,0,0,.45)" />
             </a-tooltip>
           </span>
           <a-input
@@ -52,7 +52,7 @@
           <span slot="label">
             {{ $t('label.zoneid') }}
             <a-tooltip :title="apiParams.zoneid.description">
-              <a-icon type="info-circle" />
+              <a-icon type="info-circle" style="color: rgba(0,0,0,.45)" />
             </a-tooltip>
           </span>
           <a-select
@@ -77,7 +77,7 @@
           <span slot="label">
             {{ $t('label.kubernetesversionid') }}
             <a-tooltip :title="apiParams.kubernetesversionid.description">
-              <a-icon type="info-circle" />
+              <a-icon type="info-circle" style="color: rgba(0,0,0,.45)" />
             </a-tooltip>
           </span>
           <a-select
@@ -102,7 +102,7 @@
           <span slot="label">
             {{ $t('label.serviceofferingid') }}
             <a-tooltip :title="apiParams.serviceofferingid.description">
-              <a-icon type="info-circle" />
+              <a-icon type="info-circle" style="color: rgba(0,0,0,.45)" />
             </a-tooltip>
           </span>
           <a-select
@@ -126,7 +126,7 @@
           <span slot="label">
             {{ $t('label.noderootdisksize') }}
             <a-tooltip :title="apiParams.noderootdisksize.description">
-              <a-icon type="info-circle" />
+              <a-icon type="info-circle" style="color: rgba(0,0,0,.45)" />
             </a-tooltip>
           </span>
           <a-input
@@ -146,7 +146,7 @@
           <span slot="label">
             {{ $t('label.networkid') }}
             <a-tooltip :title="apiParams.networkid.description">
-              <a-icon type="info-circle" />
+              <a-icon type="info-circle" style="color: rgba(0,0,0,.45)" />
             </a-tooltip>
           </span>
           <a-select
@@ -171,7 +171,7 @@
           <span slot="label">
             {{ $t('label.masternodes') }}
             <a-tooltip :title="apiParams.masternodes.description">
-              <a-icon type="info-circle" />
+              <a-icon type="info-circle" style="color: rgba(0,0,0,.45)" />
             </a-tooltip>
           </span>
           <a-input
@@ -194,7 +194,7 @@
           <span slot="label">
             {{ $t('label.externalloadbalanceripaddress') }}
             <a-tooltip :title="apiParams.externalloadbalanceripaddress.description">
-              <a-icon type="info-circle" />
+              <a-icon type="info-circle" style="color: rgba(0,0,0,.45)" />
             </a-tooltip>
           </span>
           <a-input
@@ -205,7 +205,7 @@
           <span slot="label">
             {{ $t('label.cks.cluster.size') }}
             <a-tooltip :title="apiParams.size.description">
-              <a-icon type="info-circle" />
+              <a-icon type="info-circle" style="color: rgba(0,0,0,.45)" />
             </a-tooltip>
           </span>
           <a-input
@@ -228,7 +228,7 @@
           <span slot="label">
             {{ $t('label.keypair') }}
             <a-tooltip :title="apiParams.keypair.description">
-              <a-icon type="info-circle" />
+              <a-icon type="info-circle" style="color: rgba(0,0,0,.45)" />
             </a-tooltip>
           </span>
           <a-select

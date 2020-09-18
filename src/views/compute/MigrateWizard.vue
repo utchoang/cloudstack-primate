@@ -163,19 +163,19 @@ export default {
           jobId: response.migratevirtualmachineresponse.jobid,
           successMessage: `${this.$t('message.success.migrating')} ${this.resource.name}`,
           successMethod: () => {
-            this.$emit('close-action')
+            this.$parent.$parent.close()
           },
           errorMessage: this.$t('message.migrating.failed'),
           errorMethod: () => {
-            this.$emit('close-action')
+            this.$parent.$parent.close()
           },
           loadingMessage: `${this.$t('message.migrating.processing')} ${this.resource.name}`,
           catchMessage: this.$t('error.fetching.async.job.result'),
           catchMethod: () => {
-            this.$emit('close-action')
+            this.$parent.$parent.close()
           }
         })
-        this.$emit('close-action')
+        this.$parent.$parent.close()
       }).catch(error => {
         console.error(error)
         this.$message.error(`${this.$t('message.migrating.vm.to.host.failed')} ${this.selectedHost.name}`)
