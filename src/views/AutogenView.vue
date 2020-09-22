@@ -465,6 +465,9 @@ export default {
       })
     },
     fetchData (params = {}) {
+      if (this.$route.name === 'deployVirtualMachine') {
+        return
+      }
       if (this.routeName !== this.$route.name) {
         this.routeName = this.$route.name
         this.items = []
@@ -985,12 +988,12 @@ export default {
               this.fetchData()
             }
           }
+          this.closeAction()
         }).catch(error => {
           console.log(error)
           this.$notifyError(error)
         }).finally(f => {
           this.actionLoading = false
-          this.closeAction()
         })
       })
     },
