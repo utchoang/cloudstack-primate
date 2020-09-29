@@ -26,7 +26,7 @@
           <span slot="label">
             {{ $t('label.name') }}
             <a-tooltip :title="apiParams.name.description">
-              <a-icon type="info-circle" />
+              <a-icon type="info-circle" style="color: rgba(0,0,0,.45)" />
             </a-tooltip>
           </span>
           <a-input
@@ -39,7 +39,7 @@
           <span slot="label">
             {{ $t('label.displaytext') }}
             <a-tooltip :title="apiParams.displaytext.description">
-              <a-icon type="info-circle" />
+              <a-icon type="info-circle" style="color: rgba(0,0,0,.45)" />
             </a-tooltip>
           </span>
           <a-input
@@ -52,7 +52,7 @@
           <span slot="label">
             {{ $t('label.networkrate') }}
             <a-tooltip :title="apiParams.networkrate.description">
-              <a-icon type="info-circle" />
+              <a-icon type="info-circle" style="color: rgba(0,0,0,.45)" />
             </a-tooltip>
           </span>
           <a-input
@@ -72,7 +72,7 @@
           <span slot="label">
             {{ $t('label.guestiptype') }}
             <a-tooltip :title="apiParams.guestiptype.description">
-              <a-icon type="info-circle" />
+              <a-icon type="info-circle" style="color: rgba(0,0,0,.45)" />
             </a-tooltip>
           </span>
           <a-radio-group
@@ -96,7 +96,7 @@
           <span slot="label">
             {{ $t('label.ispersistent') }}
             <a-tooltip :title="apiParams.ispersistent.description">
-              <a-icon type="info-circle" />
+              <a-icon type="info-circle" style="color: rgba(0,0,0,.45)" />
             </a-tooltip>
           </span>
           <a-switch v-decorator="['ispersistent', {initialValue: false}]" />
@@ -105,7 +105,7 @@
           <span slot="label">
             {{ $t('label.specifyvlan') }}
             <a-tooltip :title="apiParams.specifyvlan.description">
-              <a-icon type="info-circle" />
+              <a-icon type="info-circle" style="color: rgba(0,0,0,.45)" />
             </a-tooltip>
           </span>
           <a-switch v-decorator="['specifyvlan', {initialValue: true}]" :defaultChecked="true" />
@@ -114,7 +114,7 @@
           <span slot="label">
             {{ $t('label.vpc') }}
             <a-tooltip :title="apiParams.forvpc.description">
-              <a-icon type="info-circle" />
+              <a-icon type="info-circle" style="color: rgba(0,0,0,.45)" />
             </a-tooltip>
           </span>
           <a-switch v-decorator="['forvpc', {initialValue: this.forVpc}]" :defaultChecked="this.forVpc" @change="val => { this.handleForVpcChange(val) }" />

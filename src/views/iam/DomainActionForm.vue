@@ -44,7 +44,7 @@
             <span slot="label">
               {{ $t('label.' + field.name) }}
               <a-tooltip :title="field.description">
-                <a-icon type="info-circle" />
+                <a-icon type="info-circle" style="color: rgba(0,0,0,.45)" />
               </a-tooltip>
             </span>
 
@@ -157,6 +157,10 @@ export default {
       this.$pollJob({
         jobId,
         successMethod: result => {
+          if (this.action.api === 'deleteDomain') {
+            this.$set(this.resource, 'isDel', true)
+            this.parentUpdActionData(this.resource)
+          }
           this.parentFetchData()
           if (action.response) {
             const description = action.response(result.jobresult)
@@ -250,9 +254,6 @@ export default {
           if (!hasJobId) {
             this.parentUpdActionData(json)
             this.parentFetchData()
-          } else {
-            this.$set(this.resource, 'isDel', true)
-            this.parentUpdActionData(this.resource)
           }
           this.parentCloseAction()
         }).catch(error => {

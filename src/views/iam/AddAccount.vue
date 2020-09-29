@@ -23,7 +23,7 @@
           <span slot="label">
             {{ $t('label.role') }}
             <a-tooltip :title="apiParams.roleid.description">
-              <a-icon type="info-circle" />
+              <a-icon type="info-circle" style="color: rgba(0,0,0,.45)" />
             </a-tooltip>
           </span>
           <a-select
@@ -41,7 +41,7 @@
           <span slot="label">
             {{ $t('label.username') }}
             <a-tooltip :title="apiParams.username.description">
-              <a-icon type="info-circle" />
+              <a-icon type="info-circle" style="color: rgba(0,0,0,.45)" />
             </a-tooltip>
           </span>
           <a-input
@@ -56,7 +56,7 @@
               <span slot="label">
                 {{ $t('label.password') }}
                 <a-tooltip :title="apiParams.password.description">
-                  <a-icon type="info-circle" />
+                  <a-icon type="info-circle" style="color: rgba(0,0,0,.45)" />
                 </a-tooltip>
               </span>
               <a-input-password
@@ -71,7 +71,7 @@
               <span slot="label">
                 {{ $t('label.confirmpassword') }}
                 <a-tooltip :title="apiParams.password.description">
-                  <a-icon type="info-circle" />
+                  <a-icon type="info-circle" style="color: rgba(0,0,0,.45)" />
                 </a-tooltip>
               </span>
               <a-input-password
@@ -89,7 +89,7 @@
           <span slot="label">
             {{ $t('label.email') }}
             <a-tooltip :title="apiParams.email.description">
-              <a-icon type="info-circle" />
+              <a-icon type="info-circle" style="color: rgba(0,0,0,.45)" />
             </a-tooltip>
           </span>
           <a-input
@@ -104,7 +104,7 @@
               <span slot="label">
                 {{ $t('label.firstname') }}
                 <a-tooltip :title="apiParams.firstname.description">
-                  <a-icon type="info-circle" />
+                  <a-icon type="info-circle" style="color: rgba(0,0,0,.45)" />
                 </a-tooltip>
               </span>
               <a-input
@@ -119,7 +119,7 @@
               <span slot="label">
                 {{ $t('label.lastname') }}
                 <a-tooltip :title="apiParams.lastname.description">
-                  <a-icon type="info-circle" />
+                  <a-icon type="info-circle" style="color: rgba(0,0,0,.45)" />
                 </a-tooltip>
               </span>
               <a-input
@@ -134,7 +134,7 @@
           <span slot="label">
             {{ $t('label.domain') }}
             <a-tooltip :title="apiParams.domainid.description">
-              <a-icon type="info-circle" />
+              <a-icon type="info-circle" style="color: rgba(0,0,0,.45)" />
             </a-tooltip>
           </span>
           <a-select
@@ -152,22 +152,47 @@
           <span slot="label">
             {{ $t('label.account') }}
             <a-tooltip :title="apiParams.account.description">
-              <a-icon type="info-circle" />
+              <a-icon type="info-circle" style="color: rgba(0,0,0,.45)" />
             </a-tooltip>
           </span>
-          <a-input v-decorator="['account']" :placeholder="apiParams.account.description" />
+          <a-select
+            v-decorator="['accountid', {
+              initialValue: selectedAccount,
+            }]"
+            :loading="accountLoading"
+            :placeholder="apiParams.account.description">
+            <div slot="dropdownRender" slot-scope="menu">
+              <v-nodes :vnodes="menu" />
+              <a-divider style="margin: 0;" />
+              <a-button
+                class="btn-add-account"
+                type="default"
+                @mousedown="e => e.preventDefault()"
+                @click="addItem"
+                icon="plus"
+              >
+                {{ $t('label.add.item') }}
+              </a-button>
+            </div>
+            <a-select-option
+              v-for="account in accountList"
+              :key="account.id">
+              {{ account.name }}
+            </a-select-option>
+          </a-select>
         </a-form-item>
         <a-form-item>
           <span slot="label">
             {{ $t('label.timezone') }}
             <a-tooltip :title="apiParams.timezone.description">
-              <a-icon type="info-circle" />
+              <a-icon type="info-circle" style="color: rgba(0,0,0,.45)" />
             </a-tooltip>
           </span>
           <a-select
             showSearch
             v-decorator="['timezone']"
-            :loading="timeZoneLoading">
+            :loading="timeZoneLoading"
+            :placeholder="apiParams.timezone.description">
             <a-select-option v-for="opt in timeZoneMap" :key="opt.id">
               {{ opt.name || opt.description }}
             </a-select-option>
@@ -177,7 +202,7 @@
           <span slot="label">
             {{ $t('label.networkdomain') }}
             <a-tooltip :title="apiParams.networkdomain.description">
-              <a-icon type="info-circle" />
+              <a-icon type="info-circle" style="color: rgba(0,0,0,.45)" />
             </a-tooltip>
           </span>
           <a-input
@@ -192,7 +217,7 @@
             <span slot="label">
               {{ $t('label.samlentity') }}
               <a-tooltip :title="apiParams.entityid.description">
-                <a-icon type="info-circle" />
+                <a-icon type="info-circle" style="color: rgba(0,0,0,.45)" />
               </a-tooltip>
             </span>
             <a-select
@@ -212,6 +237,22 @@
         </div>
       </a-form>
     </a-spin>
+    <a-modal
+      :visible="activeNewAccount"
+      :closable="true"
+      :maskClosable="false"
+      :title="$t('label.add.item')"
+      centered
+      width="300px"
+      @cancel="closeModals"
+      @ok="onAddNewAccount">
+      <a-form-item
+        style="margin: 0"
+        :validate-status="accountError"
+        :help="accountErrorMsg">
+        <a-input v-model="newAccount" @keyup="resetError" />
+      </a-form-item>
+    </a-modal>
   </div>
 </template>
 <script>
@@ -221,12 +262,25 @@ import debounce from 'lodash/debounce'
 
 export default {
   name: 'AddAccountForm',
+  components: {
+    VNodes: {
+      functional: true,
+      render: (h, ctx) => ctx.props.vnodes
+    }
+  },
   data () {
     this.fetchTimeZone = debounce(this.fetchTimeZone, 800)
     return {
       loading: false,
       domainLoading: false,
       domainsList: [],
+      accountLoading: false,
+      accountList: [],
+      newAccount: '',
+      selectedAccount: '',
+      accountError: '',
+      accountErrorMsg: '',
+      activeNewAccount: false,
       selectedDomain: '',
       roleLoading: false,
       roles: [],
@@ -261,6 +315,7 @@ export default {
   methods: {
     fetchData () {
       this.fetchDomains()
+      this.fetchAccounts()
       this.fetchRoles()
       this.fetchTimeZone()
       if ('listIdps' in this.$store.getters.apis) {
@@ -269,6 +324,9 @@ export default {
     },
     isAdminOrDomainAdmin () {
       return ['Admin', 'DomainAdmin'].includes(this.$store.getters.userInfo.roletype)
+    },
+    isDomainAdmin () {
+      return this.$store.getters.userInfo.roletype === 'DomainAdmin'
     },
     isValidValueForKey (obj, key) {
       return key in obj && obj[key] != null
@@ -306,11 +364,33 @@ export default {
         this.domainLoading = false
       })
     },
+    fetchAccounts () {
+      this.accountLoading = true
+      api('listAccounts', {
+        listAll: true,
+        details: 'min'
+      }).then(response => {
+        this.accountList = response.listaccountsresponse.account || []
+      }).catch(error => {
+        this.$notification.error({
+          message: `${this.$t('label.error')} ${error.response.status}`,
+          description: error.response.data.errorresponse.errortext
+        })
+      }).finally(() => {
+        this.accountLoading = false
+      })
+    },
     fetchRoles () {
       this.roleLoading = true
       api('listRoles').then(response => {
         this.roles = response.listrolesresponse.role || []
         this.selectedRole = this.roles[0].id
+        if (this.isDomainAdmin()) {
+          const userRole = this.roles.filter(role => role.type === 'User')
+          if (userRole.length > 0) {
+            this.selectedRole = userRole[0].id
+          }
+        }
       }).finally(() => {
         this.roleLoading = false
       })
@@ -348,6 +428,16 @@ export default {
           firstname: values.firstname,
           lastname: values.lastname,
           domainid: values.domainid
+        }
+        if (values.accountid.length > 0) {
+          const account = this.accountList.filter(item => item.id === values.accountid)
+          if (account.length > 0) {
+            if (account[0].accounttype === 'new-account') {
+              params.account = account[0].name
+            } else {
+              params.accountid = values.accountid
+            }
+          }
         }
         if (this.isValidValueForKey(values, 'account') && values.account.length > 0) {
           params.account = values.account
@@ -400,6 +490,51 @@ export default {
     },
     closeAction () {
       this.$emit('close-action')
+    },
+    addItem () {
+      this.resetError()
+      this.activeNewAccount = true
+    },
+    onAddNewAccount () {
+      if (!this.validateAccount()) {
+        return
+      }
+      const randomAccountUuid = this.randomAccountUuid()
+      const account = {
+        id: randomAccountUuid,
+        name: this.newAccount,
+        accounttype: 'new-account'
+      }
+      this.selectedAccount = randomAccountUuid
+      this.accountList.push(account)
+      this.closeModals()
+    },
+    validateAccount () {
+      this.resetError()
+      if (!this.newAccount || this.newAccount.length === 0) {
+        this.accountError = 'error'
+        this.accountErrorMsg = `${this.$t('message.error.required.input')}`
+        return false
+      }
+      const accountIdx = this.accountList.findIndex(account => account.name === this.newAccount)
+      if (accountIdx > -1) {
+        this.accountError = 'error'
+        this.accountErrorMsg = `${this.$t('label.account.name')} ${this.newAccount} ${this.$t('label.already.exists')}`
+        return false
+      }
+      return true
+    },
+    closeModals () {
+      this.resetError()
+      this.newAccount = ''
+      this.activeNewAccount = false
+    },
+    resetError () {
+      this.accountError = ''
+      this.accountErrorMsg = ''
+    },
+    randomAccountUuid () {
+      return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15)
     }
   }
 }
@@ -416,5 +551,9 @@ export default {
     button {
       margin-right: 5px;
     }
+  }
+  .btn-add-account {
+    display: block;
+    width: 100%;
   }
 </style>

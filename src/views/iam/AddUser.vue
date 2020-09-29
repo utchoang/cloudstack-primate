@@ -23,7 +23,7 @@
           <span slot="label">
             {{ $t('label.username') }}
             <a-tooltip :title="apiParams.username.description">
-              <a-icon type="info-circle" />
+              <a-icon type="info-circle" style="color: rgba(0,0,0,.45)" />
             </a-tooltip>
           </span>
           <a-input
@@ -38,7 +38,7 @@
               <span slot="label">
                 {{ $t('label.password') }}
                 <a-tooltip :title="apiParams.password.description">
-                  <a-icon type="info-circle" />
+                  <a-icon type="info-circle" style="color: rgba(0,0,0,.45)" />
                 </a-tooltip>
               </span>
               <a-input-password
@@ -53,7 +53,7 @@
               <span slot="label">
                 {{ $t('label.confirmpassword') }}
                 <a-tooltip :title="apiParams.password.description">
-                  <a-icon type="info-circle" />
+                  <a-icon type="info-circle" style="color: rgba(0,0,0,.45)" />
                 </a-tooltip>
               </span>
               <a-input-password
@@ -71,7 +71,7 @@
           <span slot="label">
             {{ $t('label.email') }}
             <a-tooltip :title="apiParams.email.description">
-              <a-icon type="info-circle" />
+              <a-icon type="info-circle" style="color: rgba(0,0,0,.45)" />
             </a-tooltip>
           </span>
           <a-input
@@ -86,7 +86,7 @@
               <span slot="label">
                 {{ $t('label.firstname') }}
                 <a-tooltip :title="apiParams.firstname.description">
-                  <a-icon type="info-circle" />
+                  <a-icon type="info-circle" style="color: rgba(0,0,0,.45)" />
                 </a-tooltip>
               </span>
               <a-input
@@ -101,7 +101,7 @@
               <span slot="label">
                 {{ $t('label.lastname') }}
                 <a-tooltip :title="apiParams.lastname.description">
-                  <a-icon type="info-circle" />
+                  <a-icon type="info-circle" style="color: rgba(0,0,0,.45)" />
                 </a-tooltip>
               </span>
               <a-input
@@ -112,18 +112,16 @@
             </a-form-item>
           </a-col>
         </a-row>
-        <a-form-item v-if="this.isAdminOrDomainAdmin()">
+        <a-form-item v-if="this.isAdminOrDomainAdmin() && !domainid">
           <span slot="label">
             {{ $t('label.domain') }}
             <a-tooltip :title="apiParams.domainid.description">
-              <a-icon type="info-circle" />
+              <a-icon type="info-circle" style="color: rgba(0,0,0,.45)" />
             </a-tooltip>
           </span>
           <a-select
             :loading="domainLoading"
-            v-decorator="['domainid', {
-              initialValue: selectedDomain,
-              rules: [{ required: true, message: $t('message.error.select') }] }]"
+            v-decorator="['domainid']"
             :placeholder="apiParams.domainid.description">
             <a-select-option v-for="domain in domainsList" :key="domain.id">
               {{ domain.name }}
@@ -134,7 +132,7 @@
           <span slot="label">
             {{ $t('label.account') }}
             <a-tooltip :title="apiParams.account.description">
-              <a-icon type="info-circle" />
+              <a-icon type="info-circle" style="color: rgba(0,0,0,.45)" />
             </a-tooltip>
           </span>
           <a-select
@@ -150,7 +148,7 @@
           <span slot="label">
             {{ $t('label.timezone') }}
             <a-tooltip :title="apiParams.timezone.description">
-              <a-icon type="info-circle" />
+              <a-icon type="info-circle" style="color: rgba(0,0,0,.45)" />
             </a-tooltip>
           </span>
           <a-select
@@ -170,7 +168,7 @@
             <span slot="label">
               {{ $t('label.samlentity') }}
               <a-tooltip :title="apiParams.entityid.description">
-                <a-icon type="info-circle" />
+                <a-icon type="info-circle" style="color: rgba(0,0,0,.45)" />
               </a-tooltip>
             </span>
             <a-select
@@ -215,7 +213,8 @@ export default {
       selectedIdp: '',
       loadingAccount: false,
       accountList: [],
-      account: null
+      account: null,
+      domainid: null
     }
   },
   beforeCreate () {
@@ -236,11 +235,14 @@ export default {
   methods: {
     fetchData () {
       this.account = this.$route.query && this.$route.query.account ? this.$route.query.account : null
-      this.fetchDomains()
-      this.fetchTimeZone()
+      this.domainid = this.$route.query && this.$route.query.domainid ? this.$route.query.domainid : null
+      if (!this.domianid) {
+        this.fetchDomains()
+      }
       if (!this.account) {
         this.fetchAccount()
       }
+      this.fetchTimeZone()
       if ('listIdps' in this.$store.getters.apis) {
         this.fetchIdps()
       }
@@ -313,14 +315,21 @@ export default {
           email: values.email,
           firstname: values.firstname,
           lastname: values.lastname,
-          domainid: values.domainid,
           accounttype: 0
         }
-        if (!this.account) {
-          params.account = this.accountList[values.account].name
-        } else {
+
+        if (this.account) {
           params.account = this.account
+        } else if (values.account) {
+          params.account = this.accountList[values.account].name
         }
+
+        if (this.domainid) {
+          params.domainid = this.domainid
+        } else if (values.domainid) {
+          params.domainid = values.domainid
+        }
+
         if (this.isValidValueForKey(values, 'timezone') && values.timezone.length > 0) {
           params.timezone = values.timezone
         }

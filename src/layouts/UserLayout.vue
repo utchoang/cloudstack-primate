@@ -57,6 +57,7 @@ export default {
 <style lang="less" scoped>
 .user-layout {
   height: 100%;
+  background: #fff;
 
   &-container {
     padding: 3rem 0;

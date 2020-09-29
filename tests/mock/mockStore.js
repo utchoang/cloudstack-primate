@@ -15,34 +15,36 @@
 // specific language governing permissions and limitations
 // under the License.
 
-const babelConfig = {
-  presets: [
-    '@vue/app'
-  ],
-  plugins: [
-    [
-      'import',
-      {
-        libraryName: '@ant-design/icons',
-        libraryDirectory: 'es/icons',
-        camel2DashComponentName: false
+import Vuex from 'vuex'
+
+const mockStore = {
+  state: {},
+  mock: (state, actions) => {
+    mockStore.state = {
+      app: {
+        device: 'desktop'
       },
-      '@ant-design/icons'
-    ]
-  ]
-  // if your use import on Demand, Use this code
-  // ,
-  // plugins: [
-  //   [ 'import', {
-  //     'libraryName': 'ant-design-vue',
-  //     'libraryDirectory': 'es',
-  //     'style': true
-  //   } ]
-  // ]
+      user: {},
+      permission: {}
+    }
+
+    if (state && Object.keys(state).length > 0) {
+      mockStore.state = { ...mockStore.state, ...state }
+    }
+
+    if (!actions) {
+      actions = {}
+    }
+
+    return new Vuex.Store({
+      state: mockStore.state,
+      getters: {
+        apis: () => mockStore.state.user.apis,
+        userInfo: () => mockStore.state.user.info
+      },
+      actions
+    })
+  }
 }
 
-if (process.env.ENV_NODE === 'test') {
-  babelConfig.plugins.push('require-context-hook')
-}
-
-module.exports = babelConfig
+export default mockStore
