@@ -32,7 +32,7 @@
       <template slot="action" slot-scope="text, record">
         <span style="margin-right: 5px">
           <a-button
-            :disabled="!('copyIso' in $store.getters.apis)"
+            :disabled="!('copyIso' in $store.getters.apis && record.isready)"
             icon="copy"
             shape="circle"
             :loading="copyLoading"
@@ -78,6 +78,9 @@
       :title="$t('label.action.copy.iso')"
       :visible="showCopyActionForm"
       :closable="true"
+      :maskClosable="false"
+      :okText="$t('label.ok')"
+      :cancelText="$t('label.cancel')"
       @ok="handleCopyIsoSubmit"
       @cancel="onCloseCopyForm"
       :confirmLoading="copyLoading"

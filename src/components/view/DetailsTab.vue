@@ -18,7 +18,7 @@
 <template>
   <a-list
     size="small"
-    :dataSource="projectname ? [...$route.meta.details.filter(x => x !== 'account'), 'projectname'] : $route.meta.details">
+    :dataSource="fetchDetails()">
     <a-list-item slot="renderItem" slot-scope="item" v-if="item in resource">
       <div>
         <strong>{{ item === 'service' ? $t('label.supportedservices') : $t('label.' + String(item).toLowerCase()) }}</strong>
@@ -36,6 +36,9 @@
         <div v-else-if="['name', 'type'].includes(item)">
           <span v-if="['USER.LOGIN', 'USER.LOGOUT', 'ROUTER.HEALTH.CHECKS', 'FIREWALL.CLOSE', 'ALERT.SERVICE.DOMAINROUTER'].includes(resource[item])">{{ $t(resource[item].toLowerCase()) }}</span>
           <span v-else>{{ resource[item] }}</span>
+        </div>
+        <div v-else-if="['created', 'sent', 'lastannotated'].includes(item)">
+          {{ $toLocaleDate(resource[item]) }}
         </div>
         <div v-else>
           {{ resource[item] }}
@@ -93,6 +96,28 @@ export default {
     },
     $route () {
       this.dedicatedSectionActive = this.dedicatedRoutes.includes(this.$route.meta.name)
+      this.fetchProjectAdmins()
+    }
+  },
+  methods: {
+    fetchProjectAdmins () {
+      if (!this.resource.owner) {
+        return false
+      }
+      var owners = this.resource.owner
+      var projectAdmins = []
+      for (var owner of owners) {
+        projectAdmins.push(Object.keys(owner).includes('user') ? owner.account + '(' + owner.user + ')' : owner.account)
+      }
+      this.resource.account = projectAdmins.join()
+    },
+    fetchDetails () {
+      var details = this.$route.meta.details
+      if (typeof details === 'function') {
+        details = details()
+      }
+      details = this.projectname ? [...details.filter(x => x !== 'account'), 'projectname'] : details
+      return details
     }
   }
 }

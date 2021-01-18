@@ -16,11 +16,12 @@
 // under the License.
 
 <template>
-  <div class="form-layout">
-    <a-tabs defaultActiveKey="1" :animated="false">
-      <a-tab-pane :tab="$t('label.isolated')" key="1" v-if="this.isAdvancedZoneWithoutSGAvailable()">
+  <a-spin :spinning="loading" class="form-layout">
+    <a-tabs defaultActiveKey="1" :animated="false" v-if="!loading">
+      <a-tab-pane :tab="$t('label.isolated')" key="1" v-if="isAdvancedZoneWithoutSGAvailable">
         <CreateIsolatedNetworkForm
           :loading="loading"
+          :resource="resource"
           @close-action="closeAction"
           @refresh-data="refreshParent"
           @refresh="handleRefresh"/>
@@ -28,6 +29,7 @@
       <a-tab-pane :tab="$t('label.l2')" key="2">
         <CreateL2NetworkForm
           :loading="loading"
+          :resource="resource"
           @close-action="closeAction"
           @refresh-data="refreshParent"
           @refresh="handleRefresh"/>
@@ -35,12 +37,13 @@
       <a-tab-pane :tab="$t('label.shared')" key="3" v-if="this.isAdmin()">
         <CreateSharedNetworkForm
           :loading="loading"
+          :resource="resource"
           @close-action="closeAction"
           @refresh-data="refreshParent"
           @refresh="handleRefresh"/>
       </a-tab-pane>
     </a-tabs>
-  </div>
+  </a-spin>
 </template>
 
 <script>
@@ -64,42 +67,50 @@ export default {
   },
   data () {
     return {
+      isAdvancedZoneWithoutSGAvailable: true,
       defaultNetworkTypeTabKey: '1',
       loading: false,
       actionZones: [],
       actionZoneLoading: false
     }
   },
-  mounted () {
-    this.fetchData()
+  watch: {
+    resource (newItem, oldItem) {
+      this.fetchData()
+    }
+  },
+  created () {
+    const promises = []
+    promises.push(this.fetchActionZoneData())
+    Promise.all(promises).then(() => {
+      for (const i in this.actionZones) {
+        const zone = this.actionZones[i]
+        if (zone.networktype === 'Advanced' && zone.securitygroupsenabled !== true) {
+          this.isAdvancedZoneWithoutSGAvailable = true
+          return
+        }
+      }
+      this.isAdvancedZoneWithoutSGAvailable = false
+    })
   },
   methods: {
-    fetchData () {
-      this.loading = true
-      this.fetchActionZoneData()
-    },
     isAdmin () {
       return ['Admin'].includes(this.$store.getters.userInfo.roletype)
     },
     fetchActionZoneData () {
+      this.loading = true
       const params = {}
+      if (this.resource && this.resource.zoneid) {
+        params.id = this.resource.zoneid
+      }
       params.listAll = true
       this.actionZonesLoading = true
-      api('listZones', params).then(json => {
+      return api('listZones', params).then(json => {
         this.actionZones = json.listzonesresponse.zone
       }).finally(() => {
         this.actionZoneLoading = false
         this.loading = false
       })
-    },
-    isAdvancedZoneWithoutSGAvailable () {
-      for (const i in this.actionZones) {
-        const zone = this.actionZones[i]
-        if (zone.networktype === 'Advanced' && zone.securitygroupsenabled !== true) {
-          return true
-        }
-      }
-      return true
     },
     handleRefresh () {
       this.fetchData()

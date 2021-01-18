@@ -19,11 +19,12 @@ import Cookies from 'js-cookie'
 import Vue from 'vue'
 import md5 from 'md5'
 import message from 'ant-design-vue/es/message'
+import notification from 'ant-design-vue/es/notification'
 import router from '@/router'
 import store from '@/store'
 import { login, logout, api } from '@/api'
 import i18n from '@/locales'
-import { ACCESS_TOKEN, CURRENT_PROJECT, DEFAULT_THEME, APIS, ASYNC_JOB_IDS, ZONES } from '@/store/mutation-types'
+import { ACCESS_TOKEN, CURRENT_PROJECT, DEFAULT_THEME, APIS, ASYNC_JOB_IDS, ZONES, TIMEZONE_OFFSET, USE_BROWSER_TIMEZONE } from '@/store/mutation-types'
 
 const user = {
   state: {
@@ -37,12 +38,22 @@ const user = {
     asyncJobIds: [],
     isLdapEnabled: false,
     cloudian: {},
-    zones: {}
+    zones: {},
+    timezoneoffset: 0.0,
+    usebrowsertimezone: false
   },
 
   mutations: {
     SET_TOKEN: (state, token) => {
       state.token = token
+    },
+    SET_TIMEZONE_OFFSET: (state, timezoneoffset) => {
+      Vue.ls.set(TIMEZONE_OFFSET, timezoneoffset)
+      state.timezoneoffset = timezoneoffset
+    },
+    SET_USE_BROWSER_TIMEZONE: (state, bool) => {
+      Vue.ls.set(USE_BROWSER_TIMEZONE, bool)
+      state.usebrowsertimezone = bool
     },
     SET_PROJECT: (state, project = {}) => {
       Vue.ls.set(CURRENT_PROJECT, project)
@@ -91,7 +102,6 @@ const user = {
       return new Promise((resolve, reject) => {
         login(userInfo).then(response => {
           const result = response.loginresponse || {}
-
           Cookies.set('account', result.account, { expires: 1 })
           Cookies.set('domainid', result.domainid, { expires: 1 })
           Cookies.set('role', result.type, { expires: 1 })
@@ -100,9 +110,12 @@ const user = {
           Cookies.set('userfullname', result.firstname + ' ' + result.lastname, { expires: 1 })
           Cookies.set('userid', result.userid, { expires: 1 })
           Cookies.set('username', result.username, { expires: 1 })
-
           Vue.ls.set(ACCESS_TOKEN, result.sessionkey, 24 * 60 * 60 * 1000)
           commit('SET_TOKEN', result.sessionkey)
+          commit('SET_TIMEZONE_OFFSET', result.timezoneoffset)
+
+          const cachedUseBrowserTimezone = Vue.ls.get(USE_BROWSER_TIMEZONE, false)
+          commit('SET_USE_BROWSER_TIMEZONE', cachedUseBrowserTimezone)
 
           commit('SET_APIS', {})
           commit('SET_NAME', '')
@@ -113,6 +126,8 @@ const user = {
           commit('SET_FEATURES', {})
           commit('SET_LDAP', {})
           commit('SET_CLOUDIAN', {})
+
+          notification.destroy()
 
           resolve()
         }).catch(error => {
@@ -125,11 +140,15 @@ const user = {
       return new Promise((resolve, reject) => {
         const cachedApis = Vue.ls.get(APIS, {})
         const cachedZones = Vue.ls.get(ZONES, [])
+        const cachedTimezoneOffset = Vue.ls.get(TIMEZONE_OFFSET, 0.0)
+        const cachedUseBrowserTimezone = Vue.ls.get(USE_BROWSER_TIMEZONE, false)
         const hasAuth = Object.keys(cachedApis).length > 0
         if (hasAuth) {
           console.log('Login detected, using cached APIs')
           commit('SET_ZONES', cachedZones)
           commit('SET_APIS', cachedApis)
+          commit('SET_TIMEZONE_OFFSET', cachedTimezoneOffset)
+          commit('SET_USE_BROWSER_TIMEZONE', cachedUseBrowserTimezone)
 
           // Ensuring we get the user info so that store.getters.user is never empty when the page is freshly loaded
           api('listUsers', { username: Cookies.get('username'), listall: true }).then(response => {
@@ -150,6 +169,8 @@ const user = {
           api('listZones', { listall: true }).then(json => {
             const zones = json.listzonesresponse.zone || []
             commit('SET_ZONES', zones)
+          }).catch(error => {
+            reject(error)
           })
           api('listApis').then(response => {
             const apis = {}
@@ -174,7 +195,7 @@ const user = {
           })
         }
 
-        api('listUsers', { username: Cookies.get('username'), listall: true }).then(response => {
+        api('listUsers', { username: Cookies.get('username') }).then(response => {
           const result = response.listusersresponse.user[0]
           commit('SET_INFO', result)
           commit('SET_NAME', result.firstname + ' ' + result.lastname)
@@ -234,6 +255,7 @@ const user = {
         Vue.ls.remove(ASYNC_JOB_IDS)
 
         logout(state.token).then(() => {
+          message.destroy()
           if (cloudianUrl) {
             window.location.href = cloudianUrl
           } else {
@@ -248,6 +270,40 @@ const user = {
       var jobsArray = Vue.ls.get(ASYNC_JOB_IDS, [])
       jobsArray.push(jobJson)
       commit('SET_ASYNC_JOB_IDS', jobsArray)
+    },
+    ProjectView ({ commit }, projectid) {
+      return new Promise((resolve, reject) => {
+        api('listApis', { projectid: projectid }).then(response => {
+          const apis = {}
+          const apiList = response.listapisresponse.api
+          for (var idx = 0; idx < apiList.length; idx++) {
+            const api = apiList[idx]
+            const apiName = api.name
+            apis[apiName] = {
+              params: api.params,
+              response: api.response
+            }
+          }
+          commit('SET_APIS', apis)
+          resolve(apis)
+          store.dispatch('GenerateRoutes', { apis }).then(() => {
+            router.addRoutes(store.getters.addRouters)
+          })
+        }).catch(error => {
+          reject(error)
+        })
+      })
+    },
+    RefreshFeatures ({ commit }) {
+      return new Promise((resolve, reject) => {
+        api('listCapabilities').then(response => {
+          const result = response.listcapabilitiesresponse.capability
+          resolve(result)
+          commit('SET_FEATURES', result)
+        }).catch(error => {
+          reject(error)
+        })
+      })
     }
   }
 }

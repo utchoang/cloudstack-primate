@@ -59,7 +59,7 @@ export default {
       icon: 'edit',
       label: 'label.edit',
       dataView: true,
-      args: ['hosttags', 'oscategoryid'],
+      args: ['name', 'hosttags', 'oscategoryid'],
       mapping: {
         oscategoryid: {
           api: 'listOsCategories'
@@ -137,7 +137,7 @@ export default {
           value: (record) => { return record.id }
         },
         driver: {
-          options: ['ipmitool', 'nestedcloudstack']
+          options: ['ipmitool', 'nestedcloudstack', 'redfish']
         }
       }
     },
@@ -192,6 +192,9 @@ export default {
       mapping: {
         hostid: {
           value: (record) => { return record.id }
+        },
+        action: {
+          options: ['ON', 'OFF', 'CYCLE', 'RESET', 'SOFT', 'STATUS']
         }
       }
     },

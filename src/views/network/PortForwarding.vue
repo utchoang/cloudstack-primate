@@ -123,7 +123,12 @@
       </template>
     </a-pagination>
 
-    <a-modal :title="$t('label.edit.tags')" v-model="tagsModalVisible" :footer="null" :afterClose="closeModal">
+    <a-modal
+      :title="$t('label.edit.tags')"
+      v-model="tagsModalVisible"
+      :footer="null"
+      :maskClosable="false"
+      :afterClose="closeModal">
       <span v-show="tagsModalLoading" class="tags-modal-loading">
         <a-icon type="loading"></a-icon>
       </span>
@@ -155,6 +160,9 @@
 
     <a-modal
       :title="$t('label.add.vm')"
+      :maskClosable="false"
+      :okText="$t('label.ok')"
+      :cancelText="$t('label.cancel')"
       v-model="addVmModalVisible"
       class="vm-modal"
       width="60vw"
@@ -205,7 +213,7 @@
               v-model="newRule.vmguestip"
             >
               <a-select-option v-for="(nic, nicIndex) in nics" :key="nic" :value="nic">
-                {{ nic }}{{ nicIndex === 0 ? ` (${this.$t('label.primary')})` : null }}
+                {{ nic }}{{ nicIndex === 0 ? ` (${$t('label.primary')})` : null }}
               </a-select-option>
             </a-select>
           </div>
@@ -463,7 +471,6 @@ export default {
         })
       }).catch(error => {
         this.$notifyError(error)
-        this.closeModal()
         this.fetchData()
       })
     },
@@ -542,7 +549,6 @@ export default {
         })
       }).catch(error => {
         this.$notifyError(error)
-        this.closeModal()
       })
     },
     handleDeleteTag (tag) {
@@ -577,7 +583,6 @@ export default {
         })
       }).catch(error => {
         this.$notifyError(error)
-        this.closeModal()
       })
     },
     openAddVMModal () {

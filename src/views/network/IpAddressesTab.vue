@@ -100,6 +100,8 @@
       :visible="showAcquireIp"
       :title="$t('label.acquire.new.ip')"
       :closable="true"
+      :okText="$t('label.ok')"
+      :cancelText="$t('label.cancel')"
       @cancel="onCloseModal"
       @ok="acquireIpAddress"
       centered
@@ -272,9 +274,10 @@ export default {
           errorMethod: () => {
             this.fetchData()
           },
-          loadingMessage: `${this.$t('label.acquiring.ip')}} ${this.$t('label.for')} ${this.resource.name} ${this.$t('label.is.in.progress')}}`,
+          loadingMessage: `${this.$t('label.acquiring.ip')} ${this.$t('label.for')} ${this.resource.name} ${this.$t('label.is.in.progress')}`,
           catchMessage: this.$t('error.fetching.async.job.result')
         })
+        this.onCloseModal()
       }).catch(error => {
         this.$notification.error({
           message: `${this.$t('label.error')} ${error.response.status}`,
@@ -283,7 +286,6 @@ export default {
         })
       }).finally(() => {
         this.acquireLoading = false
-        this.onCloseModal()
       })
     },
     releaseIpAddress (ip) {

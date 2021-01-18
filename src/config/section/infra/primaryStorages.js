@@ -61,7 +61,25 @@ export default {
       icon: 'edit',
       label: 'label.edit',
       dataView: true,
-      args: ['tags', 'capacitybytes', 'capacityiops']
+      args: ['name', 'tags', 'capacitybytes', 'capacityiops']
+    },
+    {
+      api: 'updateStoragePool',
+      icon: 'pause-circle',
+      label: 'label.disable.storage',
+      message: 'message.confirm.disable.storage',
+      dataView: true,
+      defaultArgs: { enabled: false },
+      show: (record) => { return record.state === 'Up' }
+    },
+    {
+      api: 'updateStoragePool',
+      icon: 'play-circle',
+      label: 'label.enable.storage',
+      message: 'message.confirm.enable.storage',
+      dataView: true,
+      defaultArgs: { enabled: true },
+      show: (record) => { return record.state === 'Disabled' }
     },
     {
       api: 'enableStorageMaintenance',

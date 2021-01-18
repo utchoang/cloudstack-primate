@@ -94,7 +94,7 @@
               }"
               :loading="zoneLoading"
               :placeholder="this.$t('label.physicalnetworkid')"
-              @change="val => { this.handleZoneChange(this.formPhysicalNetworks[val]) }">
+              @change="val => { this.handlePhysicalNetworkChange(this.formPhysicalNetworks[val]) }">
               <a-select-option v-for="(opt, optIndex) in this.formPhysicalNetworks" :key="optIndex">
                 {{ opt.name || opt.description }}
               </a-select-option>
@@ -432,6 +432,10 @@ export default {
     physicalNetworks: {
       type: Array,
       default: null
+    },
+    resource: {
+      type: Object,
+      default: () => { return {} }
     }
   },
   data () {
@@ -456,6 +460,11 @@ export default {
       selectedProject: {}
     }
   },
+  watch: {
+    resource (newItem, oldItem) {
+      this.fetchData()
+    }
+  },
   beforeCreate () {
     this.form = this.$form.createForm(this)
     this.apiConfig = this.$store.getters.apis.createNetwork || {}
@@ -463,7 +472,6 @@ export default {
     this.apiConfig.params.forEach(param => {
       this.apiParams[param.name] = param
     })
-    console.log(this.apiParams)
   },
   created () {
   },
@@ -500,6 +508,7 @@ export default {
       return this.isValidValueForKey(obj, key) && obj[key].length > 0
     },
     fetchZoneData () {
+      this.zones = []
       if (this.zone !== null) {
         this.zones.push(this.zone)
         if (this.arrayHasItems(this.zones)) {
@@ -510,6 +519,9 @@ export default {
         }
       } else {
         const params = {}
+        if (this.resource.zoneid && this.$route.name === 'deployVirtualMachine') {
+          params.id = this.resource.zoneid
+        }
         params.listAll = true
         this.zoneLoading = true
         api('listZones', params).then(json => {
@@ -626,7 +638,7 @@ export default {
         state: 'Enabled'
       }
       if (!this.isObjectEmpty(this.formSelectedPhysicalNetwork) &&
-        !this.isObjectEmpty(this.formSelectedPhysicalNetwork.tags) &&
+        this.formSelectedPhysicalNetwork.tags &&
         this.formSelectedPhysicalNetwork.tags.length > 0) {
         params.tags = this.formSelectedPhysicalNetwork.tags
       }
@@ -638,8 +650,12 @@ export default {
           params.domainid = this.selectedDomain.id
         }
       }
+      this.handleNetworkOfferingChange(null)
+      this.networkOfferings = []
       api('listNetworkOfferings', params).then(json => {
         this.networkOfferings = json.listnetworkofferingsresponse.networkoffering
+      }).catch(error => {
+        this.$notifyError(error)
       }).finally(() => {
         this.networkOfferingLoading = false
         if (this.arrayHasItems(this.networkOfferings)) {
@@ -647,6 +663,10 @@ export default {
             networkofferingid: 0
           })
           this.handleNetworkOfferingChange(this.networkOfferings[0])
+        } else {
+          this.form.setFieldsValue({
+            networkofferingid: null
+          })
         }
       })
     },
@@ -795,12 +815,12 @@ export default {
             description: this.$t('message.success.add.guest.network')
           })
           this.resetForm()
+          this.$emit('refresh-data')
+          this.closeAction()
         }).catch(error => {
           this.$notifyError(error)
         }).finally(() => {
-          this.$emit('refresh-data')
           this.actionLoading = false
-          this.closeAction()
         })
       })
     },

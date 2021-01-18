@@ -136,11 +136,11 @@ export default {
         page: this.page,
         pagesize: this.pageSize
       }).then(response => {
-        this.hosts = response.findhostsformigrationresponse.host
+        this.hosts = response.findhostsformigrationresponse.host || []
+        this.hosts.sort((a, b) => {
+          return b.suitableformigration - a.suitableformigration
+        })
         this.totalCount = response.findhostsformigrationresponse.count
-        if (this.totalCount > 0) {
-          this.totalCount -= 1
-        }
       }).catch(error => {
         this.$message.error(`${this.$t('message.load.host.failed')}: ${error}`)
       }).finally(() => {
@@ -153,14 +153,15 @@ export default {
         hostid: this.selectedHost.id,
         virtualmachineid: this.resource.id
       }).then(response => {
+        const jobid = this.selectedHost.requiresStorageMotion ? response.migratevirtualmachinewithvolumeresponse.jobid : response.migratevirtualmachineresponse.jobid
         this.$store.dispatch('AddAsyncJob', {
           title: `${this.$t('label.migrating')} ${this.resource.name}`,
-          jobid: response.migratevirtualmachineresponse.jobid,
+          jobid: jobid,
           description: this.resource.name,
           status: 'progress'
         })
         this.$pollJob({
-          jobId: response.migratevirtualmachineresponse.jobid,
+          jobId: jobid,
           successMessage: `${this.$t('message.success.migrating')} ${this.resource.name}`,
           successMethod: () => {
             this.$parent.$parent.close()
@@ -177,8 +178,13 @@ export default {
         })
         this.$parent.$parent.close()
       }).catch(error => {
-        console.error(error)
-        this.$message.error(`${this.$t('message.migrating.vm.to.host.failed')} ${this.selectedHost.name}`)
+        this.$notification.error({
+          message: this.$t('message.request.failed'),
+          description: (error.response && error.response.headers && error.response.headers['x-description']) || error.message,
+          duration: 0
+        })
+      }).finally(() => {
+        this.loading = false
       })
     },
     handleChangePage (page, pageSize) {

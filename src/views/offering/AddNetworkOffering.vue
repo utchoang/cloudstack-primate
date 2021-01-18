@@ -146,10 +146,10 @@
             <a-radio-button value="">
               {{ $t('label.none') }}
             </a-radio-button>
-            <a-radio-button value="accept">
+            <a-radio-button value="true">
               {{ $t('label.accept') }}
             </a-radio-button>
-            <a-radio-button value="reject">
+            <a-radio-button value="false">
               {{ $t('label.reject') }}
             </a-radio-button>
           </a-radio-group>
@@ -164,10 +164,10 @@
             <a-radio-button value="">
               {{ $t('label.none') }}
             </a-radio-button>
-            <a-radio-button value="accept">
+            <a-radio-button value="true">
               {{ $t('label.accept') }}
             </a-radio-button>
-            <a-radio-button value="reject">
+            <a-radio-button value="false">
               {{ $t('label.reject') }}
             </a-radio-button>
           </a-radio-group>
@@ -182,10 +182,10 @@
             <a-radio-button value="">
               {{ $t('label.none') }}
             </a-radio-button>
-            <a-radio-button value="accept">
+            <a-radio-button value="true">
               {{ $t('label.accept') }}
             </a-radio-button>
-            <a-radio-button value="reject">
+            <a-radio-button value="false">
               {{ $t('label.reject') }}
             </a-radio-button>
           </a-radio-group>
@@ -446,6 +446,15 @@
               {{ opt.name || opt.description }}
             </a-select-option>
           </a-select>
+        </a-form-item>
+        <a-form-item>
+          <span slot="label">
+            {{ $t('label.enable.network.offering') }}
+            <a-tooltip :title="apiParams.enable.description">
+              <a-icon type="info-circle" style="color: rgba(0,0,0,.45)" />
+            </a-tooltip>
+          </span>
+          <a-switch v-decorator="['enable', {initialValue: false}]" />
         </a-form-item>
       </a-form>
       <div :span="24" class="action-button">
@@ -894,13 +903,13 @@ export default {
         if ('egressdefaultpolicy' in values && values.egressdefaultpolicy !== 'allow') {
           params.egressdefaultpolicy = false
         }
-        if ('promiscuousmode' in values) {
+        if (values.promiscuousmode) {
           params['details[0].promiscuousMode'] = values.promiscuousmode
         }
-        if ('macaddresschanges' in values) {
+        if (values.macaddresschanges) {
           params['details[0].macaddresschanges'] = values.macaddresschanges
         }
-        if ('forgedtransmits' in values) {
+        if (values.forgedtransmits) {
           params['details[0].forgedtransmits'] = values.forgedtransmits
         }
         if (values.ispublic !== true) {
@@ -929,15 +938,18 @@ export default {
         if (zoneId) {
           params.zoneid = zoneId
         }
+        if (values.enable) {
+          params.enable = values.enable
+        }
         params.traffictype = 'GUEST' // traffic type dropdown has been removed since it has only one option ('Guest'). Hardcode traffic type value here.
         api('createNetworkOffering', params).then(json => {
           this.$message.success('Network offering created: ' + values.name)
+          this.$emit('refresh-data')
+          this.closeAction()
         }).catch(error => {
           this.$notifyError(error)
         }).finally(() => {
           this.loading = false
-          this.$emit('refresh-data')
-          this.closeAction()
         })
       })
     },

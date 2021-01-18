@@ -42,6 +42,8 @@
             :title="$t('label.sslcertificates')"
             :visible="sslFormVisible"
             :footer="null"
+            :maskClosable="false"
+            :cancelText="$t('label.cancel')"
             @cancel="sslModalClose">
             <p>
               {{ $t('message.update.ssl') }}
